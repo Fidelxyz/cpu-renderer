@@ -7,9 +7,10 @@
 
 class VertexShader {
    public:
-    mat4 transform;
-    VertexShader(Camera *camera);
+    mat4 mvp_transform;
+    mat4 screen_transform;
 
+    VertexShader(Camera *camera);
     void shade(Vertex *vertex);
 };
 

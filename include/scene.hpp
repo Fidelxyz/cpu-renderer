@@ -12,7 +12,8 @@ class Scene {
     std::vector<Object *> objects;
     std::vector<Light *> lights;
 
-    Camera *camera;
+    Camera *camera = nullptr;
+    Scene();
 };
 
 #endif

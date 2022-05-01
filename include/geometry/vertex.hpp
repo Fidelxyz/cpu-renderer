@@ -6,7 +6,7 @@
 class Vertex {
    public:
     vec3 pos;
-
+    vec3 view_pos;
     vec3 screen_pos;
 
     Vertex(const vec3 &pos);

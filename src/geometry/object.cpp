@@ -103,7 +103,7 @@ bool Object::load_model(const char* filename, const char* basepath) {
         // }
         // printf("\n");
 
-        materials.push_back(material);
+        materials.push_back(std::move(material));
     }
 
     // For each shape
@@ -125,7 +125,6 @@ bool Object::load_model(const char* filename, const char* basepath) {
         // For each face
         for (size_t f = 0; f < t_shape.mesh.num_face_vertices.size(); f++) {
             size_t fnum = t_shape.mesh.num_face_vertices[f];
-
             assert(fnum == 3);
 
             auto triangle = Triangle();
@@ -134,17 +133,20 @@ bool Object::load_model(const char* filename, const char* basepath) {
             for (size_t v = 0; v < fnum; v++) {
                 tinyobj::index_t idx = t_shape.mesh.indices[index_offset + v];
                 triangle.vertices.push_back(&vertices[idx.vertex_index]);
-                triangle.normals.push_back(normals[idx.normal_index]);
-                triangle.texcoords.push_back(texcoords[idx.texcoord_index]);
+                if (idx.normal_index != -1)
+                    triangle.normals.push_back(normals[idx.normal_index]);
+                if (idx.texcoord_index != -1)
+                    triangle.texcoords.push_back(texcoords[idx.texcoord_index]);
             }
 
-            triangle.material = &materials[t_shape.mesh.material_ids[f]];
+            if (t_shape.mesh.material_ids[f] != -1)
+                triangle.material = &materials[t_shape.mesh.material_ids[f]];
 
             // printf("  face[%ld].smoothing_group_id = %d\n",
             //        static_cast<long>(f),
             //        t_shape.mesh.smoothing_group_ids[f]);
 
-            shape.triangles.push_back(triangle);
+            shape.triangles.push_back(std::move(triangle));
 
             index_offset += fnum;
         }
@@ -188,7 +190,7 @@ bool Object::load_model(const char* filename, const char* basepath) {
         //     printf("\n");
         // }
 
-        shapes.push_back(shape);
+        shapes.push_back(std::move(shape));
     }
 
     return true;

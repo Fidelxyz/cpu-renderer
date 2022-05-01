@@ -11,7 +11,7 @@ class FragmentShader {
     std::vector<Light *> lights;
 
     FragmentShader(std::vector<Light *> lights);
-    vec3 shade(vec3 pos, vec3 normal);
+    vec3 shade(const vec3 &pos, const vec3 &normal);
 };
 
 #endif

@@ -58,13 +58,27 @@ VertexShader::VertexShader(Camera *camera) {
                                 projection_ortho_translation *
                                 projection_persp_to_ortho;
 
-    transform = projection_transform * view_transform;
+    mvp_transform = projection_transform * view_transform;
+
+    // Screen transform
+
+    float screen_scale_x = static_cast<float>(camera->width) / 2.f;
+    float screen_scale_y = static_cast<float>(camera->height) / 2.f;
+
+    // clang-format off
+    screen_transform << screen_scale_x, 0, 0, screen_scale_x,
+                        0, screen_scale_y, 0, screen_scale_y,
+                        0, 0, 1, 0,
+                        0, 0, 0, 1;
+    // clang-format on
 }
 
 void VertexShader::shade(Vertex *vertex) {
-    auto screen_pos =
-        vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1).transpose() *
-        transform;
-    vertex->screen_pos =
-        vec3(screen_pos.x(), screen_pos.y(), screen_pos.z()) / screen_pos.w();
+    vec4 view_pos = mvp_transform *
+                    vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1);
+    vertex->view_pos =
+        vec3(view_pos.x(), view_pos.y(), view_pos.z()) / view_pos.w();
+
+    vec4 screen_pos = screen_transform * view_pos;
+    vertex->screen_pos = vec3(screen_pos.x(), screen_pos.y(), screen_pos.z());
 }
