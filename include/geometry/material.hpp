@@ -28,7 +28,7 @@ class Material {
     std::string displacement_texname;
 
     // PBR
-    
+
     float roughness;
     float metallic;
     float sheen;
@@ -42,6 +42,7 @@ class Material {
     std::string sheen_texname;
     std::string normal_texname;
 
+    Material();
     Material(const std::string &name);
 };
 

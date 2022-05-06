@@ -1,7 +1,37 @@
 #include "shader/fragment_shader.hpp"
 
-FragmentShader::FragmentShader(std::vector<Light *> lights) {
+#include <algorithm>
+#include <cmath>
+
+FragmentShader::FragmentShader(Camera *camera, std::vector<Light *> lights) {
     this->lights = lights;
+    this->eye_pos = camera->pos;
 }
 
-vec3 shade(vec3 pos, vec3 normal) { return vec3(0, 0, 0); }
+vec3 FragmentShader::shade(const vec3 &pos, const vec3 &normal,
+                           Material *material) {
+    vec3 diffuse = vec3(0, 0, 0);
+    vec3 specular = vec3(0, 0, 0);
+
+    vec3 eye_dir = (eye_pos - pos).normalized();
+    vec3 normal_corrected = (normal.dot(eye_dir) > 0) ? normal : -normal;
+
+    for (auto &light : lights) {
+        vec3 light_dir = (light->pos - pos).normalized();
+        float light_distance_squared = (light->pos - pos).squaredNorm();
+        float reflected_intensity = light->intensity / light_distance_squared;
+
+        diffuse += light->color.cwiseProduct(material->diffuse) *
+                   reflected_intensity *
+                   std::max(0.f, normal_corrected.dot(light_dir));
+        // TODO Light color
+
+        vec3 h = (light_dir + eye_dir).normalized();
+        specular += light->color.cwiseProduct(material->specular) *
+                    reflected_intensity *
+                    std::pow(std::max(0.f, normal_corrected.dot(h)),
+                             material->shininess);
+    }
+
+    return material->ambient + diffuse + specular;
+}

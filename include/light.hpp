@@ -6,7 +6,9 @@
 class Light {
    public:
     vec3 pos;
-    Light(const vec3 &pos);
+    vec3 color;
+    float intensity;
+    Light(const vec3 &pos, const vec3 &color, const float intensity);
 };
 
 #endif
