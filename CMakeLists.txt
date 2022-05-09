@@ -24,11 +24,17 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(include)
 include_directories(3rdparty/include)
 
+link_directories(3rdparty/lib)
+
 FILE(GLOB_RECURSE CURRENT_INCLUDE include/*.hpp)
 FILE(GLOB_RECURSE CURRENT_SOURCES src/*.cpp)
 FILE(GLOB_RECURSE THIRDPARTY_INCLUDE 3rdparty/include/*.h)
 # aux_source_directory(src CURRENT_SOURCES)
 
-add_executable(cpu-renderer ${CURRENT_SOURCES} ${CURRENT_INCLUDE} ${THIRDPARTY_INCLUDE})
+add_executable(cpu-renderer ${CURRENT_SOURCES})
 
-target_link_libraries(cpu-renderer ${OpenCV_LIBS} ${EIGEN3_LIBS})
+target_link_libraries(cpu-renderer
+    ${OpenCV_LIBS}
+    ${EIGEN3_LIBS}
+    yaml-cpp
+)

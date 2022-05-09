@@ -8,33 +8,33 @@
 class Material {
    public:
     std::string name;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    vec3 transmittance;
-    vec3 emission;
-    float shininess;
-    float ior;
-    float dissolve;
-    float illum;
+    vec3 ambient = vec3(0, 0, 0);
+    vec3 diffuse = vec3(0, 0, 0);
+    vec3 specular = vec3(0, 0, 0);
+    vec3 transmittance = vec3(0, 0, 0);
+    vec3 emission = vec3(0, 0, 0);
+    float shininess = 0;
+    float ior = 0;
+    float dissolve = 0;
+    float illum = 0;
 
     std::string ambient_texname;
     std::string diffuse_texname;
     std::string specular_texname;
     std::string specular_highlight_texname;
     std::string bump_texname;
-    float bump_multiplier;
+    float bump_multiplier = 0;
     std::string alpha_texname;
     std::string displacement_texname;
 
     // PBR
 
-    float roughness;
-    float metallic;
-    float sheen;
-    float clearcoat_thickness;
-    float anisotropy;
-    float anisotropy_rotation;
+    float roughness = 0;
+    float metallic = 0;
+    float sheen = 0;
+    float clearcoat_thickness = 0;
+    float anisotropy = 0;
+    float anisotropy_rotation = 0;
 
     std::string emissive_texname;
     std::string roughness_texname;

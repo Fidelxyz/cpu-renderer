@@ -1,6 +1,6 @@
 #include "geometry/object.hpp"
 
-#include <cassert>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -14,16 +14,57 @@
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 
-Object::Object() {}
+Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
+    vec3 rotation_arc = rotation * M_PI / 180.f;
 
-bool Object::load_model(const char* filename, const char* basepath) {
+    mat4 translation_matrix;
+    // clang-format off
+    translation_matrix << 1, 0, 0, pos.x(),
+                          0, 1, 0, pos.y(),
+                          0, 0, 1, pos.z(),
+                          0, 0, 0, 1;
+    // clang-format on
+
+    mat4 rotation_x, rotation_y, rotation_z;
+    // clang-format off
+    rotation_x << 1, 0,                          0,                           0,
+                  0, std::cos(rotation_arc.x()), -std::sin(rotation_arc.x()), 0,
+                  0, std::sin(rotation_arc.x()), std::cos(rotation_arc.x()),  0,
+                  0, 0,                          0,                           1;
+
+    rotation_y << std::cos(rotation_arc.y()),  0, std::sin(rotation_arc.y()), 0,
+                  0,                           1, 0,                          0,
+                  -std::sin(rotation_arc.y()), 0, std::cos(rotation_arc.y()), 0,
+                  0,                           0, 0,                          1;
+
+    rotation_z << std::cos(rotation_arc.z()), -std::sin(rotation_arc.z()), 0, 0,
+                  std::sin(rotation_arc.z()), std::cos(rotation_arc.z()),  0, 0,
+                  0,                          0,                           1, 0,
+                  0,                          0,                           0, 1;
+    // clang-format on
+    mat4 rotation_matrix = rotation_z * rotation_y * rotation_x;
+
+    mat4 scale_matrix;
+    // clang-format off
+    scale_matrix << scale.x(), 0, 0, 0,
+                    0, scale.y(), 0, 0,
+                    0, 0, scale.z(), 0,
+                    0, 0, 0, 1;
+    // clang-format on
+
+    model_transform = translation_matrix * rotation_matrix * scale_matrix;
+}
+
+bool Object::load_model(const std::string& filename,
+                        const std::string& basepath) {
     tinyobj::attrib_t t_attrib;
     std::vector<tinyobj::shape_t> t_shapes;
     std::vector<tinyobj::material_t> t_materials;
 
     std::string err;
-    bool ret = tinyobj::LoadObj(&t_attrib, &t_shapes, &t_materials, &err,
-                                filename, basepath, true);
+    bool ret = tinyobj::LoadObj(
+        &t_attrib, &t_shapes, &t_materials, &err, filename.c_str(),
+        basepath.empty() ? nullptr : basepath.c_str(), true);
 
     if (!err.empty()) std::cerr << "ERR: " << err << std::endl;
 
@@ -92,17 +133,6 @@ bool Object::load_model(const char* filename, const char* basepath) {
         material.sheen_texname = t_material.sheen_texname;
         material.normal_texname = t_material.normal_texname;
 
-        // std::map<std::string, std::string>::const_iterator it(
-        //     t_material.unknown_parameter.begin());
-        // std::map<std::string, std::string>::const_iterator itEnd(
-        //     t_material.unknown_parameter.end());
-
-        // for (; it != itEnd; it++) {
-        //     printf("  material.%s = %s\n", it->first.c_str(),
-        //            it->second.c_str());
-        // }
-        // printf("\n");
-
         materials.push_back(std::move(material));
     }
 
@@ -118,14 +148,9 @@ bool Object::load_model(const char* filename, const char* basepath) {
         // assert(t_shape.mesh.num_face_vertices.size() ==
         //        t_shape.mesh.smoothing_group_ids.size());
 
-        // printf("shape[%ld].num_faces: %lu\n", static_cast<long>(i),
-        //        static_cast<unsigned long>(
-        //            t_shape.mesh.num_face_vertices.size()));
-
         // For each face
         for (size_t f = 0; f < t_shape.mesh.num_face_vertices.size(); f++) {
             size_t fnum = t_shape.mesh.num_face_vertices[f];
-            assert(fnum == 3);
 
             auto triangle = Triangle();
 

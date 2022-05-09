@@ -17,15 +17,4 @@ using ivec4 = Eigen::Vector4i;
 
 const float EPS = 1e-5;
 
-namespace camera {
-const vec3 POS = vec3(0.1, 0.2, -0.5);
-const vec3 UP_DIR = vec3(0, -1, 0).normalized();
-const vec3 LOOK_DIR = vec3(0, 0, 1).normalized();
-const float FOV = 15.f * M_PI / 180.f;
-const float NEAR_PLANE = 0.1;
-const float FAR_PLANE = 300.0;
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
-}  // namespace camera
-
 #endif

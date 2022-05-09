@@ -1,0 +1,37 @@
+objects:
+  - path: ../example/models/bunny/bunny.obj
+    basepath: ../example/models/bunny
+    pos: [0, -0.1, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+    material:
+      ambient: [0.05, 0.05, 0.05]
+      specular: [0.5, 0.5, 0.5]
+      diffuse: [0.1, 0.1, 0.1]
+      shininess: 20.0
+  # - path: ../example/models/spot/spot_triangulated_good.obj
+  #   basepath: ../example/models/spot
+  #   pos: [0, 0, 0]
+  #   rotation: [0, 0, 0]
+  #   scale: [0.1, 0.1, 0.1]
+  #   material:
+  #     ambient: [0.05, 0.05, 0.05]
+  #     specular: [0.5, 0.5, 0.5]
+  #     diffuse: [0.1, 0.1, 0.1]
+  #     shininess: 20.0
+lights:
+  - pos: [0.5, 1.0, -2.0]
+    color: [1.0, 1.0, 0.8]
+    intensity: 5
+  - pos: [-2.0, 1.0, -2.0]
+    color: [1, 0.5, 0.5]
+    intensity: 20
+camera:
+  pos: [0, 0, -0.3]
+  look_dir: [0.0, 0.0, 1.0]
+  up_dir: [0.0, -1.0, 0.0]
+  fov: 45.0
+  near_plane: 0.1
+  far_plane: 300.0
+  width: 1920
+  height: 1080

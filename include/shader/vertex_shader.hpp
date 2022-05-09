@@ -2,16 +2,16 @@
 #define VERTEX_SHADER_H
 
 #include "camera.hpp"
+#include "geometry/object.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 
 class VertexShader {
    public:
-    mat4 mvp_transform;
-    mat4 screen_transform;
+    mat4 transform;
 
-    VertexShader(Camera *camera);
-    void shade(Vertex *vertex);
+    VertexShader(const Camera &camera);
+    void shade(Vertex *vertex, const Object &object);
 };
 
 #endif
