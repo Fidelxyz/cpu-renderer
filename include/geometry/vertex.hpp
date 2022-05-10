@@ -7,6 +7,7 @@ class Vertex {
    public:
     vec3 pos;
     vec3 screen_pos;
+    float w;
 
     Vertex(const vec3 &pos);
 };

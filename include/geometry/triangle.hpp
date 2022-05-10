@@ -34,18 +34,20 @@ class Triangle {
     static float truncate_y_ss(float y, const Camera &camera);
     static float truncate_color(float color);
 
+    vec3 bary_coord_ss(const vec2 &screen_pos) const;
+
+    float interpolate_z_ss(const vec3 &bary_coord_ss) const;
+
+    std::tuple<float, float, float> corrected_bary_coord(
+        const vec3 &bary_coord_ss) const;
+
     template <typename T>
     static T interpolate(const std::tuple<T, T, T> &vals,
                          const std::tuple<float, float, float> &weights);
 
-    // Return the interpolate weights in screen spaces
-    vec3 interpolate_weights_ss(const vec2 &screen_pos) const;
-
-    float interpolate_z(const std::tuple<float, float, float> &weights) const;
-
-    // Return the interpolate weights in view spaces
-    std::tuple<float, float, float> interpolate_weights(
-        const std::tuple<float, float, float> &weights_ss, const float z) const;
+    void shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
+               Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
+               FragmentShader *fragment_shader) const;
 };
 
 #endif

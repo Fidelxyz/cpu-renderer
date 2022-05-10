@@ -75,9 +75,12 @@ VertexShader::VertexShader(const Camera &camera) {
 }
 
 void VertexShader::shade(Vertex *vertex, const Object &object) {
-    vec4 screen_pos =
-        transform * object.model_transform *
-        vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1);
+    vec4 pos = object.model_transform *
+               vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1);
+    vertex->pos = vec3(pos.x(), pos.y(), pos.z()) / pos.w();
+
+    vec4 screen_pos = transform * pos;
     vertex->screen_pos =
         vec3(screen_pos.x(), screen_pos.y(), screen_pos.z()) / screen_pos.w();
+    vertex->w = screen_pos.w();
 }

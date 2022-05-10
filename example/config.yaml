@@ -2,7 +2,7 @@ objects:
   - path: ../example/models/bunny/bunny.obj
     basepath: ../example/models/bunny
     pos: [0, -0.1, 0]
-    rotation: [0, 0, 0]
+    rotation: [0, 180, 0]
     scale: [1, 1, 1]
     material:
       ambient: [0.05, 0.05, 0.05]
@@ -23,9 +23,9 @@ lights:
   - pos: [0.5, 1.0, -2.0]
     color: [1.0, 1.0, 0.8]
     intensity: 5
-  - pos: [-2.0, 1.0, -2.0]
+  - pos: [-3.0, 1.0, -2.0]
     color: [1, 0.5, 0.5]
-    intensity: 20
+    intensity: 10
 camera:
   pos: [0, 0, -0.3]
   look_dir: [0.0, 0.0, 1.0]
