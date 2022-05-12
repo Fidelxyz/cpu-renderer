@@ -1,31 +1,38 @@
 objects:
-  - path: ../example/models/bunny/bunny.obj
-    basepath: ../example/models/bunny
-    pos: [0, -0.1, 0]
-    rotation: [0, 180, 0]
-    scale: [1, 1, 1]
-    material:
-      ambient: [0.05, 0.05, 0.05]
-      specular: [0.5, 0.5, 0.5]
-      diffuse: [0.1, 0.1, 0.1]
-      shininess: 20.0
-  # - path: ../example/models/spot/spot_triangulated_good.obj
-  #   basepath: ../example/models/spot
-  #   pos: [0, 0, 0]
-  #   rotation: [0, 0, 0]
-  #   scale: [0.1, 0.1, 0.1]
+  # - path: ../example/models/bunny/bunny.obj
+  #   basepath: ../example/models/bunny/
+  #   pos: [0, -0.1, 0]
+  #   rotation: [0, 180, 0]
+  #   scale: [1, 1, 1]
   #   material:
   #     ambient: [0.05, 0.05, 0.05]
   #     specular: [0.5, 0.5, 0.5]
   #     diffuse: [0.1, 0.1, 0.1]
   #     shininess: 20.0
+
+  # - path: ../example/models/spot/spot_triangulated_good.obj
+  #   basepath: ../example/models/spot/
+  #   pos: [0, -0.01, 0]
+  #   rotation: [0, 45, 0]
+  #   scale: [0.1, 0.1, 0.1]
+  #   material:
+  #     ambient: [0.05, 0.05, 0.05]
+  #     shininess: 20.0
+  #     diffuse-texname: spot_texture.png
+  #     # specular-texname: spot_texture.png
+
+  - path: ../example/models/keqing/keqing.obj
+    basepath: ../example/models/keqing/
+    pos: [0, -0.08, -0.1]
+    rotation: [0, 180, 0]
+    scale: [0.1, 0.1, 0.1]
 lights:
-  - pos: [0.5, 1.0, -2.0]
-    color: [1.0, 1.0, 0.8]
-    intensity: 5
-  - pos: [-3.0, 1.0, -2.0]
+  - pos: [1.0, 1.0, -1.0]
+    color: [0.5, 0.5, 1.0]
+    intensity: 4
+  - pos: [-1.5, 1.0, 0]
     color: [1, 0.5, 0.5]
-    intensity: 10
+    intensity: 4
 camera:
   pos: [0, 0, -0.3]
   look_dir: [0.0, 0.0, 1.0]

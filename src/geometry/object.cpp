@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <vector>
 
 #include "geometry/material.hpp"
 #include "geometry/shape.hpp"
@@ -16,43 +15,94 @@
 
 Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
     vec3 rotation_arc = rotation * M_PI / 180.f;
+    float sin_x = std::sin(rotation_arc.x());
+    float sin_y = std::sin(rotation_arc.y());
+    float sin_z = std::sin(rotation_arc.z());
+    float cos_x = std::cos(rotation_arc.x());
+    float cos_y = std::cos(rotation_arc.y());
+    float cos_z = std::cos(rotation_arc.z());
 
-    mat4 translation_matrix;
+    // Model transform
+
+    mat4 model_translation;
     // clang-format off
-    translation_matrix << 1, 0, 0, pos.x(),
-                          0, 1, 0, pos.y(),
-                          0, 0, 1, pos.z(),
-                          0, 0, 0, 1;
+    model_translation << 1, 0, 0, pos.x(),
+                         0, 1, 0, pos.y(),
+                         0, 0, 1, pos.z(),
+                         0, 0, 0, 1;
     // clang-format on
 
-    mat4 rotation_x, rotation_y, rotation_z;
+    mat4 model_rotation_x, model_rotation_y, model_rotation_z;
     // clang-format off
-    rotation_x << 1, 0,                          0,                           0,
-                  0, std::cos(rotation_arc.x()), -std::sin(rotation_arc.x()), 0,
-                  0, std::sin(rotation_arc.x()), std::cos(rotation_arc.x()),  0,
-                  0, 0,                          0,                           1;
+    model_rotation_x << 1, 0,     0,      0,
+                        0, cos_x, -sin_x, 0,
+                        0, sin_x, cos_x,  0,
+                        0, 0,     0,      1;
 
-    rotation_y << std::cos(rotation_arc.y()),  0, std::sin(rotation_arc.y()), 0,
-                  0,                           1, 0,                          0,
-                  -std::sin(rotation_arc.y()), 0, std::cos(rotation_arc.y()), 0,
-                  0,                           0, 0,                          1;
+    model_rotation_y << cos_y,  0, sin_y, 0,
+                        0,      1, 0,     0,
+                        -sin_y, 0, cos_y, 0,
+                        0,      0, 0,     1;
 
-    rotation_z << std::cos(rotation_arc.z()), -std::sin(rotation_arc.z()), 0, 0,
-                  std::sin(rotation_arc.z()), std::cos(rotation_arc.z()),  0, 0,
-                  0,                          0,                           1, 0,
-                  0,                          0,                           0, 1;
+    model_rotation_z << cos_z, -sin_z, 0, 0,
+                        sin_z, cos_z,  0, 0,
+                        0,     0,      1, 0,
+                        0,     0,      0, 1;
     // clang-format on
-    mat4 rotation_matrix = rotation_z * rotation_y * rotation_x;
+    mat4 model_rotation =
+        model_rotation_z * model_rotation_y * model_rotation_x;
 
-    mat4 scale_matrix;
+    mat4 model_scale;
     // clang-format off
-    scale_matrix << scale.x(), 0, 0, 0,
-                    0, scale.y(), 0, 0,
-                    0, 0, scale.z(), 0,
-                    0, 0, 0, 1;
+    model_scale << scale.x(), 0, 0, 0,
+                   0, scale.y(), 0, 0,
+                   0, 0, scale.z(), 0,
+                   0, 0, 0, 1;
     // clang-format on
 
-    model_transform = translation_matrix * rotation_matrix * scale_matrix;
+    model_transform_matrix = model_translation * model_rotation * model_scale;
+
+    // Normal transform
+
+    mat3 normal_rotation_x, normal_rotation_y, normal_rotation_z;
+    // clang-format off
+    normal_rotation_x << 1, 0,     0,      
+                         0, cos_x, -sin_x,
+                         0, sin_x, cos_x;
+
+    normal_rotation_y << cos_y,  0, sin_y,
+                         0,      1, 0,    
+                         -sin_y, 0, cos_y;
+
+    normal_rotation_z << cos_z, -sin_z, 0,
+                         sin_z, cos_z,  0,
+                         0,     0,      1;
+    // clang-format on
+    mat3 normal_rotation =
+        normal_rotation_z * normal_rotation_y * normal_rotation_x;
+
+    mat3 normal_scale;
+    // clang-format off
+    normal_scale << scale.x(), 0, 0,
+                    0, scale.y(), 0,
+                    0, 0, scale.z();
+    // clang-format on
+
+    normal_transform_matrix = normal_rotation * normal_scale;
+}
+
+void Object::model_transform() {
+    // pos
+    for (auto& vertex : vertices) {
+        vec4 pos = model_transform_matrix *
+                   vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1);
+        vertex->pos = vec3(pos.x(), pos.y(), pos.z());
+    }
+
+    // normal
+    for (auto& normal : normals) {
+        *normal = (normal_transform_matrix * *normal).normalized();
+    }
 }
 
 bool Object::load_model(const std::string& filename,
@@ -73,72 +123,82 @@ bool Object::load_model(const std::string& filename,
         return false;
     }
 
+    vertices.reserve(t_attrib.vertices.size() / 3);
     for (size_t i = 0; i < t_attrib.vertices.size(); i += 3) {
-        vertices.push_back(
-            Vertex(vec3(t_attrib.vertices[i], t_attrib.vertices[i + 1],
-                        t_attrib.vertices[i + 2])));
+        vertices.emplace_back(std::make_shared<Vertex>(
+            vec3(t_attrib.vertices[i], t_attrib.vertices[i + 1],
+                 t_attrib.vertices[i + 2])));
     }
 
+    normals.reserve(t_attrib.normals.size() / 3);
     for (size_t i = 0; i < t_attrib.normals.size(); i += 3) {
-        normals.push_back(vec3(t_attrib.normals[i], t_attrib.normals[i + 1],
-                               t_attrib.normals[i + 2]));
+        normals.emplace_back(std::make_shared<vec3>(t_attrib.normals[i],
+                                                    t_attrib.normals[i + 1],
+                                                    t_attrib.normals[i + 2]));
     }
 
+    texcoords.reserve(t_attrib.texcoords.size() / 2);
     for (size_t i = 0; i < t_attrib.texcoords.size(); i += 2) {
-        texcoords.push_back(
-            vec2(t_attrib.texcoords[i], t_attrib.texcoords[i + 1]));
+        texcoords.emplace_back(std::make_shared<vec2>(
+            t_attrib.texcoords[i], t_attrib.texcoords[i + 1]));
     }
 
     for (auto& t_material : t_materials) {
-        auto material = Material(t_material.name);
+        auto material = std::make_shared<Material>();
 
-        material.ambient = vec3(t_material.ambient[0], t_material.ambient[1],
-                                t_material.ambient[2]);
-        material.diffuse = vec3(t_material.diffuse[0], t_material.diffuse[1],
-                                t_material.diffuse[2]);
-        material.specular = vec3(t_material.specular[0], t_material.specular[1],
-                                 t_material.specular[2]);
-        material.transmittance =
+        material->ambient = vec3(t_material.ambient[0], t_material.ambient[1],
+                                 t_material.ambient[2]);
+        material->diffuse = vec3(t_material.diffuse[0], t_material.diffuse[1],
+                                 t_material.diffuse[2]);
+        material->specular =
+            vec3(t_material.specular[0], t_material.specular[1],
+                 t_material.specular[2]);
+        material->transmittance =
             vec3(t_material.transmittance[0], t_material.transmittance[1],
                  t_material.transmittance[2]);
-        material.emission = vec3(t_material.emission[0], t_material.emission[1],
-                                 t_material.emission[2]);
+        material->emission =
+            vec3(t_material.emission[0], t_material.emission[1],
+                 t_material.emission[2]);
 
-        material.shininess = t_material.shininess;
-        material.ior = t_material.ior;
-        material.dissolve = t_material.dissolve;
-        material.illum = t_material.illum;
+        material->shininess = t_material.shininess;
+        material->ior = t_material.ior;
+        material->dissolve = t_material.dissolve;
+        material->illum = t_material.illum;
 
-        material.ambient_texname = t_material.ambient_texname;
-        material.diffuse_texname = t_material.diffuse_texname;
-        material.specular_texname = t_material.specular_texname;
-        material.specular_highlight_texname =
-            t_material.specular_highlight_texname;
-        material.bump_texname = t_material.bump_texname;
-        material.bump_multiplier = t_material.bump_texopt.bump_multiplier;
-        material.alpha_texname = t_material.alpha_texname;
-        material.displacement_texname = t_material.displacement_texname;
+        // material.ambient_texname = t_material.ambient_texname;
+        if (!t_material.diffuse_texname.empty()) {
+            auto texture =
+                load_texture<vec3>(t_material.diffuse_texname, basepath);
+            material->diffuse_texture = std::move(texture);
+        }
+        // material.specular_texname = t_material.specular_texname;
+        // material.specular_highlight_texname =
+        //     t_material.specular_highlight_texname;
+        // material.bump_texname = t_material.bump_texname;
+        // material.bump_multiplier = t_material.bump_texopt.bump_multiplier;
+        // material.alpha_texname = t_material.alpha_texname;
+        // material.displacement_texname = t_material.displacement_texname;
 
-        material.roughness = t_material.roughness;
-        material.metallic = t_material.metallic;
-        material.sheen = t_material.sheen;
-        material.clearcoat_thickness = t_material.clearcoat_thickness;
-        material.clearcoat_thickness = t_material.clearcoat_thickness;
-        material.anisotropy = t_material.anisotropy;
-        material.anisotropy_rotation = t_material.anisotropy_rotation;
+        // material.roughness = t_material.roughness;
+        // material.metallic = t_material.metallic;
+        // material.sheen = t_material.sheen;
+        // material.clearcoat_thickness = t_material.clearcoat_thickness;
+        // material.clearcoat_thickness = t_material.clearcoat_thickness;
+        // material.anisotropy = t_material.anisotropy;
+        // material.anisotropy_rotation = t_material.anisotropy_rotation;
 
-        material.emissive_texname = t_material.emissive_texname;
-        material.roughness_texname = t_material.roughness_texname;
-        material.metallic_texname = t_material.metallic_texname;
-        material.sheen_texname = t_material.sheen_texname;
-        material.normal_texname = t_material.normal_texname;
+        // material.emissive_texname = t_material.emissive_texname;
+        // material.roughness_texname = t_material.roughness_texname;
+        // material.metallic_texname = t_material.metallic_texname;
+        // material.sheen_texname = t_material.sheen_texname;
+        // material.normal_texname = t_material.normal_texname;
 
-        materials.push_back(std::move(material));
+        materials.emplace_back(std::move(material));
     }
 
     // For each shape
     for (auto& t_shape : t_shapes) {
-        auto shape = Shape(t_shape.name);
+        auto shape = Shape();
 
         size_t index_offset = 0;
 
@@ -149,73 +209,37 @@ bool Object::load_model(const std::string& filename,
         //        t_shape.mesh.smoothing_group_ids.size());
 
         // For each face
+        shape.triangles.reserve(t_shape.mesh.num_face_vertices.size());
         for (size_t f = 0; f < t_shape.mesh.num_face_vertices.size(); f++) {
             size_t fnum = t_shape.mesh.num_face_vertices[f];
 
             auto triangle = Triangle();
 
+            triangle.vertices.reserve(3);
             // For each vertex in the face
             for (size_t v = 0; v < fnum; v++) {
                 tinyobj::index_t idx = t_shape.mesh.indices[index_offset + v];
-                triangle.vertices.push_back(&vertices[idx.vertex_index]);
+                triangle.vertices.emplace_back(vertices[idx.vertex_index]);
                 if (idx.normal_index != -1)
-                    triangle.normals.push_back(normals[idx.normal_index]);
+                    triangle.normals.emplace_back(normals[idx.normal_index]);
                 if (idx.texcoord_index != -1)
-                    triangle.texcoords.push_back(texcoords[idx.texcoord_index]);
+                    triangle.texcoords.emplace_back(
+                        texcoords[idx.texcoord_index]);
             }
 
             if (t_shape.mesh.material_ids[f] != -1)
-                triangle.material = &materials[t_shape.mesh.material_ids[f]];
+                triangle.material = materials[t_shape.mesh.material_ids[f]];
 
             // printf("  face[%ld].smoothing_group_id = %d\n",
             //        static_cast<long>(f),
             //        t_shape.mesh.smoothing_group_ids[f]);
 
-            shape.triangles.push_back(std::move(triangle));
+            shape.triangles.emplace_back(std::move(triangle));
 
             index_offset += fnum;
         }
 
-        // printf("shape[%ld].num_tags: %lu\n", static_cast<long>(i),
-        //        static_cast<unsigned long>(t_shape.mesh.tags.size()));
-        // for (size_t t = 0; t < t_shape.mesh.tags.size(); t++) {
-        //     printf("  tag[%ld] = %s ", static_cast<long>(t),
-        //            t_shape.mesh.tags[t].name.c_str());
-        //     printf(" ints: [");
-        //     for (size_t j = 0; j < t_shape.mesh.tags[t].intValues.size();
-        //          ++j) {
-        //         printf("%ld", static_cast<long>(
-        //                           t_shape.mesh.tags[t].intValues[j]));
-        //         if (j < (t_shape.mesh.tags[t].intValues.size() - 1)) {
-        //             printf(", ");
-        //         }
-        //     }
-        //     printf("]");
-
-        //     printf(" floats: [");
-        //     for (size_t j = 0; j < t_shape.mesh.tags[t].floatValues.size();
-        //          ++j) {
-        //         printf("%f", static_cast<const double>(
-        //                          t_shape.mesh.tags[t].floatValues[j]));
-        //         if (j < (t_shape.mesh.tags[t].floatValues.size() - 1)) {
-        //             printf(", ");
-        //         }
-        //     }
-        //     printf("]");
-
-        //     printf(" strings: [");
-        //     for (size_t j = 0; j < t_shape.mesh.tags[t].stringValues.size();
-        //          ++j) {
-        //         printf("%s", t_shape.mesh.tags[t].stringValues[j].c_str());
-        //         if (j < (t_shape.mesh.tags[t].stringValues.size() - 1)) {
-        //             printf(", ");
-        //         }
-        //     }
-        //     printf("]");
-        //     printf("\n");
-        // }
-
-        shapes.push_back(std::move(shape));
+        shapes.emplace_back(std::move(shape));
     }
 
     return true;

@@ -3,3 +3,6 @@ build
 
 # VS Code
 .vscode
+*.code-workspace
+
+LOGS.md

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 FragmentShader::FragmentShader(const Camera &camera,
                                std::vector<Light> &lights) {
@@ -9,10 +10,18 @@ FragmentShader::FragmentShader(const Camera &camera,
     this->eye_pos = camera.pos;
 }
 
-vec3 FragmentShader::shade(const vec3 &pos, const vec3 &normal,
+vec3 FragmentShader::shade(const vec3 &pos, const vec3 &normal, const vec2 &uv,
                            Material *material) {
-    vec3 diffuse = vec3(0, 0, 0);
-    vec3 specular = vec3(0, 0, 0);
+    vec3 diffuse_shading = vec3(0, 0, 0);
+    vec3 specular_shading = vec3(0, 0, 0);
+
+    vec3 diffuse = material->diffuse_texture
+                       ? material->diffuse_texture->sample(uv)
+                       : material->diffuse;
+
+    vec3 specular = material->specular_texture
+                        ? material->specular_texture->sample(uv)
+                        : material->specular;
 
     vec3 eye_dir = (eye_pos - pos).normalized();
 
@@ -20,16 +29,16 @@ vec3 FragmentShader::shade(const vec3 &pos, const vec3 &normal,
         vec3 light_dir = (light.pos - pos).normalized();
         float light_distance_squared = (light.pos - pos).squaredNorm();
         float reflected_intensity = light.intensity / light_distance_squared;
+        vec3 reflection = light.color * reflected_intensity;
 
-        diffuse += light.color.cwiseProduct(material->diffuse) *
-                   reflected_intensity * std::max(0.f, normal.dot(light_dir));
-        // TODO Light color
+        diffuse_shading += reflection.cwiseProduct(diffuse) *
+                           std::max(0.f, normal.dot(light_dir));
 
         vec3 h = (light_dir + eye_dir).normalized();
-        specular += light.color.cwiseProduct(material->specular) *
-                    reflected_intensity *
-                    std::pow(std::max(0.f, normal.dot(h)), material->shininess);
+        specular_shading +=
+            reflection.cwiseProduct(specular) *
+            std::pow(std::max(0.f, normal.dot(h)), material->shininess);
     }
 
-    return material->ambient + diffuse + specular;
+    return material->ambient + diffuse_shading + specular_shading;
 }

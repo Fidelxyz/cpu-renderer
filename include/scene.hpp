@@ -7,12 +7,12 @@
 #include "geometry/material.hpp"
 #include "geometry/object.hpp"
 #include "light.hpp"
+#include "texture.hpp"
 
 class Scene {
    public:
     std::vector<Object> objects;
     std::vector<Light> lights;
-    std::vector<Material> materials;
 
     Camera camera;
     Scene();

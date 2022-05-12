@@ -1,6 +1,7 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include <memory>
 #include <tuple>
 #include <vector>
 
@@ -9,30 +10,32 @@
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 #include "shader/fragment_shader.hpp"
-#include "utils/buffer.hpp"
+#include "texture.hpp"
 
 class Triangle {
    public:
-    std::vector<Vertex *> vertices;
-    std::vector<vec3> normals;
-    std::vector<vec2> texcoords;
-    Material *material = nullptr;
+    std::vector<std::shared_ptr<Vertex>> vertices;
+    std::vector<std::shared_ptr<vec3>> normals;
+    std::vector<std::shared_ptr<vec2>> texcoords;
+    std::shared_ptr<Material> material;
 
     Triangle();
+
+    vec3 normal() const;
+    void normal_transform(const mat3 normal_transform);
 
     // Return if the point is inside the triangle in the screen space.
     bool is_inside_ss(const vec3 &w_ss) const;
 
-    void rasterize(Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
+    void rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
                    FragmentShader *fragment_shader, const Camera &camera) const;
-
-    vec3 normal() const;
 
    private:
     static float cross2d(const vec2 &v1, const vec2 &v2);
     static float truncate_x_ss(float x, const Camera &camera);
     static float truncate_y_ss(float y, const Camera &camera);
     static float truncate_color(float color);
+    static vec3 truncate_color(const vec3 &color);
 
     vec3 bary_coord_ss(const vec2 &screen_pos) const;
 
@@ -45,8 +48,7 @@ class Triangle {
     static T interpolate(const std::tuple<T, T, T> &vals,
                          const std::tuple<float, float, float> &weights);
 
-    void shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
-               Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
+    vec3 shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
                FragmentShader *fragment_shader) const;
 };
 

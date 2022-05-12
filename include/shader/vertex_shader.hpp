@@ -2,7 +2,6 @@
 #define VERTEX_SHADER_H
 
 #include "camera.hpp"
-#include "geometry/object.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 
@@ -11,7 +10,7 @@ class VertexShader {
     mat4 transform;
 
     VertexShader(const Camera &camera);
-    void shade(Vertex *vertex, const Object &object);
+    void shade(Vertex *vertex);
 };
 
 #endif

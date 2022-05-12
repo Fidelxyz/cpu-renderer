@@ -4,7 +4,6 @@
 #include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
-#include <iostream>  // debug
 
 #include "global.hpp"
 
@@ -32,8 +31,13 @@ float Triangle::truncate_color(float color) {
     return color;
 }
 
+vec3 Triangle::truncate_color(const vec3 &color) {
+    return vec3(truncate_color(color.x()), truncate_color(color.y()),
+                truncate_color(color.z()));
+}
+
 bool Triangle::is_inside_ss(const vec3 &w) const {
-    return 0.f <= w.x() && 0.f <= w.y() && 0.f <= w.z();
+    return -EPS < w.x() && -EPS < w.y() && -EPS < w.z();
 }
 
 vec3 Triangle::normal() const {
@@ -96,38 +100,32 @@ T Triangle::interpolate(const std::tuple<T, T, T> &vals,
     return w1 * v1 + w2 * v2 + w3 * v3;
 }
 
-void Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
-                     Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
+vec3 Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
                      FragmentShader *fragment_shader) const {
-    // screen space interpolate
-    float z_ss = interpolate_z_ss(bary_coord);
+    // perspective-corrected interpolate
+    auto w = corrected_bary_coord(bary_coord);
 
-    if (0.f < z_ss && z_ss < z_buffer->at(pixel_x, pixel_y)) {
-        z_buffer->at(pixel_x, pixel_y) = z_ss;
+    vec3 pos = interpolate(
+        std::make_tuple(vertices[0]->pos, vertices[1]->pos, vertices[2]->pos),
+        w);
 
-        // perspective-corrected interpolate
-        auto w = corrected_bary_coord(bary_coord);
-        vec3 pos =
-            interpolate(std::make_tuple(vertices[0]->pos, vertices[1]->pos,
-                                        vertices[2]->pos),
-                        w);
+    vec3 normal =
+        normals.empty()
+            ? this->normal()
+            : interpolate(
+                  std::make_tuple(*normals[0], *normals[1], *normals[2]), w);
 
-        vec3 normal =
-            normals.empty()
-                ? this->normal()
-                : interpolate(
-                      std::make_tuple(normals[0], normals[1], normals[2]), w);
+    vec2 uv = texcoords.empty()
+                  ? vec2(0, 0)
+                  : interpolate(std::make_tuple(*texcoords[0], *texcoords[1],
+                                                *texcoords[2]),
+                                w);
 
-        vec3 shading = fragment_shader->shade(pos, normal, material);
-
-        // write into frame buffer
-        frame_buffer->at(pixel_x, pixel_y, 0) = truncate_color(shading.x());
-        frame_buffer->at(pixel_x, pixel_y, 1) = truncate_color(shading.y());
-        frame_buffer->at(pixel_x, pixel_y, 2) = truncate_color(shading.z());
-    }
+    return truncate_color(
+        fragment_shader->shade(pos, normal, uv, material.get()));
 }
 
-void Triangle::rasterize(Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
+void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
                          FragmentShader *fragment_shader,
                          const Camera &camera) const {
     auto v1 = vertices[0];
@@ -161,8 +159,16 @@ void Triangle::rasterize(Buffer<float> *frame_buffer, Buffer<float> *z_buffer,
         vec3 bary_coord_x = bary_coord_y;
         for (int pixel_x = min_x; pixel_x < max_x; pixel_x++) {
             if (is_inside_ss(bary_coord_x)) {
-                shade(pixel_x, pixel_y, bary_coord_x, frame_buffer, z_buffer,
-                      fragment_shader);
+                // screen space interpolate
+                float z = interpolate_z_ss(bary_coord_x);
+                if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)) {
+                    z_buffer->at(pixel_x, pixel_y) = z;
+                    vec3 shading =
+                        shade(pixel_x, pixel_y, bary_coord_x, fragment_shader);
+
+                    // write into frame buffer
+                    frame_buffer->at(pixel_x, pixel_y) = std::move(shading);
+                }
             }
             bary_coord_x += bary_coord_dx;
         }

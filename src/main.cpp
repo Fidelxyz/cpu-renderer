@@ -1,7 +1,7 @@
 #include <chrono>
 #include <cstdio>
+#include <iostream>
 #include <memory>
-#include <opencv2/opencv.hpp>
 #include <unordered_map>
 
 #include "camera.hpp"
@@ -13,7 +13,7 @@
 #include "scene.hpp"
 #include "shader/fragment_shader.hpp"
 #include "shader/vertex_shader.hpp"
-#include "utils/buffer.hpp"
+#include "texture.hpp"
 #include "utils/timer.hpp"
 
 void render(Scene &scene) {
@@ -23,14 +23,16 @@ void render(Scene &scene) {
     {
         Timer timer("Vertex shader");
         for (auto &object : scene.objects) {
+            object.model_transform();
             for (auto &vertex : object.vertices) {
-                vertex_shader.shade(&vertex, object);
+                vertex_shader.shade(vertex.get());
             }
         }
     }
 
-    Buffer<float> z_buffer(scene.camera.width, scene.camera.height, 1, 1.f);
-    Buffer<float> frame_buffer(scene.camera.width, scene.camera.height, 3, 0.f);
+    Texture<float> z_buffer(scene.camera.width, scene.camera.height, 1.f);
+    Texture<vec3> frame_buffer(scene.camera.width, scene.camera.height,
+                               vec3(0, 0, 0));
 
     {
         Timer timer("Trianglar rasterize");
@@ -44,21 +46,16 @@ void render(Scene &scene) {
         }
     }
 
-    auto image = cv::Mat(scene.camera.height, scene.camera.width, CV_8UC3);
-    for (int y = 0; y < scene.camera.height; y++) {
-        for (int x = 0; x < scene.camera.width; x++) {
-            image.at<cv::Vec3b>(y, x)[2] = frame_buffer.at(x, y, 0) * 255.f;
-            image.at<cv::Vec3b>(y, x)[1] = frame_buffer.at(x, y, 1) * 255.f;
-            image.at<cv::Vec3b>(y, x)[0] = frame_buffer.at(x, y, 2) * 255.f;
-        }
-    }
-    cv::imwrite("out.png", image);
+    frame_buffer.write_img("out.png");
 }
 
 int main(int argc, char *argv[]) {
-    auto config = Config("../example/config.yaml");
     auto scene = Scene();
-    if (!config.load_scene(&scene)) return 0;
+    {
+        Timer timer("Load");
+        auto config = Config("../example/config.yaml");
+        if (!config.load_scene(&scene)) return 0;
+    }
 
     {  // render
         Timer timer("Frame render");
@@ -67,3 +64,6 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+// TODO Material 中的 Texture 指针（Texture 复用）
+// TODO Gamma correction

@@ -9,10 +9,9 @@
 
 class Shape {
    public:
-    std::string name;
     std::vector<Triangle> triangles;
 
-    Shape(const std::string &name);
+    Shape();
 };
 
 #endif

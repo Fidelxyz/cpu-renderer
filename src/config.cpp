@@ -1,6 +1,10 @@
 #include "config.hpp"
 
-#include <cmath>
+#include <memory>
+#include <unordered_map>
+
+#include "camera.hpp"
+#include "geometry/material.hpp"
 
 Config::Config(const std::string &filename) : filename(filename) {}
 
@@ -17,6 +21,9 @@ bool Config::load_scene(Scene *scene) const {
 
     // objects
     for (auto yaml_object : yaml_config["objects"]) {
+        auto base_path =
+            std::filesystem::path(yaml_object["basepath"].as<std::string>());
+
         auto object = Object(to_vector(yaml_object["pos"]),
                              to_vector(yaml_object["rotation"]),
                              to_vector(yaml_object["scale"]));
@@ -28,35 +35,43 @@ bool Config::load_scene(Scene *scene) const {
         // objects.material
         auto yaml_material = yaml_object["material"];
         if (yaml_material) {
-            auto material = Material();
+            std::shared_ptr<Material> material = std::make_shared<Material>();
             if (yaml_material["ambient"])
-                material.ambient = to_vector(yaml_material["ambient"]);
+                material->ambient = to_vector(yaml_material["ambient"]);
             if (yaml_material["specular"])
-                material.specular = to_vector(yaml_material["specular"]);
+                material->specular = to_vector(yaml_material["specular"]);
             if (yaml_material["diffuse"])
-                material.diffuse = to_vector(yaml_material["diffuse"]);
+                material->diffuse = to_vector(yaml_material["diffuse"]);
             if (yaml_material["shininess"])
-                material.shininess = yaml_material["shininess"].as<float>();
+                material->shininess = yaml_material["shininess"].as<float>();
 
-            scene->materials.push_back(std::move(material));
+            if (yaml_material["diffuse-texname"])
+                material->diffuse_texture = object.load_texture<vec3>(
+                    yaml_material["diffuse-texname"].as<std::string>(),
+                    base_path);
+
+            if (yaml_material["specular-texname"])
+                material->specular_texture = object.load_texture<vec3>(
+                    yaml_material["specular-texname"].as<std::string>(),
+                    base_path);
+
+            object.materials.emplace_back(std::move(material));
 
             for (auto &shape : object.shapes) {
                 for (auto &triangle : shape.triangles) {
-                    if (triangle.material == nullptr) {
-                        triangle.material = &scene->materials.back();
-                    }
+                    triangle.material = object.materials.back();
                 }
             }
         }
 
-        scene->objects.push_back(std::move(object));
+        scene->objects.emplace_back(std::move(object));
     }
 
     // lights
     for (auto yaml_light : yaml_config["lights"]) {
-        scene->lights.push_back(Light(to_vector(yaml_light["pos"]),
-                                      to_vector(yaml_light["color"]),
-                                      yaml_light["intensity"].as<float>()));
+        scene->lights.emplace_back(to_vector(yaml_light["pos"]),
+                                   to_vector(yaml_light["color"]),
+                                   yaml_light["intensity"].as<float>());
     }
 
     // camera
