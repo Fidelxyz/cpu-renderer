@@ -1,6 +1,7 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include <array>
 #include <memory>
 #include <tuple>
 #include <vector>
@@ -27,8 +28,14 @@ class Triangle {
     // Return if the point is inside the triangle in the screen space.
     bool is_inside_ss(const vec3 &w_ss) const;
 
+#ifdef MSAA
+    void rasterize(Texture<std::array<vec3, 4>> *frame_buffer,
+                   Texture<std::array<float, 4>> *z_buffer,
+                   FragmentShader *fragment_shader, const Camera &camera) const;
+#else
     void rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
                    FragmentShader *fragment_shader, const Camera &camera) const;
+#endif
 
    private:
     static float cross2d(const vec2 &v1, const vec2 &v2);

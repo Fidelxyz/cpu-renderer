@@ -18,8 +18,9 @@ using ivec2 = Eigen::Vector2i;
 using ivec3 = Eigen::Vector3i;
 using ivec4 = Eigen::Vector4i;
 
-const float EPS = 1e-5;
+const float EPS = 1e-4;
 
 #define MSAA
+#define MIPMAP 4
 
 #endif

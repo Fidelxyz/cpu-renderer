@@ -113,9 +113,16 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
     return fragment_shader->shade(pos, normal, uv, material.get());
 }
 
+#ifdef MSAA
+void Triangle::rasterize(Texture<std::array<vec3, 4>> *frame_buffer,
+                         Texture<std::array<float, 4>> *z_buffer,
+                         FragmentShader *fragment_shader,
+                         const Camera &camera) const {
+#else
 void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
                          FragmentShader *fragment_shader,
                          const Camera &camera) const {
+#endif
     auto v1 = vertices[0];
     auto v2 = vertices[1];
     auto v3 = vertices[2];
@@ -142,10 +149,48 @@ void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
     vec3 bary_coord_dy =
         bary_coord_ss(vec2(min_x + 0.5f, min_y + 1.5f)) - bary_coord_init;
 
+#ifdef MSAA
+    vec3 bary_coord_sample_dx =
+        bary_coord_ss(vec2(min_x + 0.75f, min_y + 0.5f)) - bary_coord_init;
+    vec3 bary_coord_sample_dy =
+        bary_coord_ss(vec2(min_x + 0.5f, min_y + 0.75f)) - bary_coord_init;
+#endif
+
     vec3 bary_coord_y = bary_coord_init;
     for (int pixel_y = min_y; pixel_y < max_y; pixel_y++) {
         vec3 bary_coord_x = bary_coord_y;
         for (int pixel_x = min_x; pixel_x < max_x; pixel_x++) {
+#ifdef MSAA
+            std::array<vec3, 4> bary_coord_samples = {
+                bary_coord_x - bary_coord_sample_dx - bary_coord_sample_dy,
+                bary_coord_x + bary_coord_sample_dx - bary_coord_sample_dy,
+                bary_coord_x - bary_coord_sample_dx + bary_coord_sample_dy,
+                bary_coord_x + bary_coord_sample_dx + bary_coord_sample_dy};
+            unsigned char covered = 0;
+            int covered_count = 0;
+            vec3 bary_coord_shading = vec3(0, 0, 0);
+            for (size_t i = 0; i < 4; i++) {
+                if (is_inside_ss(bary_coord_samples[i])) {
+                    float z = interpolate_z_ss(bary_coord_samples[i]);
+                    if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {
+                        z_buffer->at(pixel_x, pixel_y)[i] = z;
+                        covered |= 1u << i;
+                        bary_coord_shading += bary_coord_samples[i];
+                        covered_count++;
+                    }
+                }
+            }
+            if (covered) {
+                bary_coord_shading /= covered_count;
+                vec3 shading = shade(pixel_x, pixel_y, bary_coord_shading,
+                                     fragment_shader);
+                for (size_t i = 0; i < 4; i++) {
+                    if (covered & (1u << i)) {
+                        frame_buffer->at(pixel_x, pixel_y)[i] = shading;
+                    }
+                }
+            }
+#else
             if (is_inside_ss(bary_coord_x)) {
                 // screen space interpolate
                 float z = interpolate_z_ss(bary_coord_x);
@@ -158,6 +203,7 @@ void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
                     frame_buffer->at(pixel_x, pixel_y) = std::move(shading);
                 }
             }
+#endif
             bary_coord_x += bary_coord_dx;
         }
         bary_coord_y += bary_coord_dy;

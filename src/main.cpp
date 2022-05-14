@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <memory>
 
@@ -11,6 +12,10 @@
 #include "shader/vertex_shader.hpp"
 #include "texture.hpp"
 #include "utils/timer.hpp"
+
+#ifdef MSAA
+#include "effects/msaa.hpp"
+#endif
 
 void render(Scene &scene) {
     auto vertex_shader = VertexShader(scene.camera);
@@ -26,11 +31,20 @@ void render(Scene &scene) {
         }
     }
 
-    size_t buffer_depth = scene.camera.msaa ? 4 : 1;
-    Texture<float> z_buffer(scene.camera.width, scene.camera.height,
-                            buffer_depth, 1.f);
+#ifdef MSAA
+    Texture<std::array<float, 4>> z_buffer(
+        scene.camera.width, scene.camera.height,
+        std::array<float, 4>{1.f, 1.f, 1.f, 1.f});
+
+    Texture<std::array<vec3, 4>> frame_buffer(
+        scene.camera.width, scene.camera.height,
+        std::array<vec3, 4>{vec3(0, 0, 0), vec3(0, 0, 0), vec3(0, 0, 0),
+                            vec3(0, 0, 0)});
+#else
+    Texture<float> z_buffer(scene.camera.width, scene.camera.height, 1.f);
     Texture<vec3> frame_buffer(scene.camera.width, scene.camera.height,
-                               buffer_depth, vec3(0, 0, 0));
+                               vec3(0, 0, 0));
+#endif
 
     {
         Timer timer("Trianglar rasterize");
@@ -44,7 +58,12 @@ void render(Scene &scene) {
         }
     }
 
+#ifdef MSAA
+    Texture<vec3> frame_result = msaa::msaa_filter(frame_buffer);
+    frame_result.write_img("out.png", false);
+#else
     frame_buffer.write_img("out.png", false);
+#endif
 }
 
 int main(int argc, char *argv[]) {
@@ -63,5 +82,5 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-// TODO MSAA
 // TODO Multi-thread
+// TODO MIPMAP

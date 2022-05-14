@@ -24,7 +24,9 @@ class Texture {
     Texture(Texture &&src);
     ~Texture();
 
-    inline T &at(const size_t x, const size_t y, const size_t z = 0) const;
+    inline T &at(const size_t x, const size_t y) const;
+    inline T &at(const size_t index) const;
+    inline T &operator[](const size_t index) const;
 
     inline bool isNull() const;
 
@@ -74,8 +76,18 @@ Texture<T>::~Texture() {
 }
 
 template <typename T>
-inline T &Texture<T>::at(const size_t x, const size_t y, const size_t z) const {
+inline T &Texture<T>::at(const size_t x, const size_t y) const {
     return data[y * width + x];
+}
+
+template <typename T>
+inline T &Texture<T>::at(const size_t index) const {
+    return data[index];
+}
+
+template <typename T>
+inline T &Texture<T>::operator[](const size_t index) const {
+    return data[index];
 }
 
 template <typename T>
