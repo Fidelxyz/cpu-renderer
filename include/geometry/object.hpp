@@ -8,9 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "geometry/material.hpp"
 #include "geometry/shape.hpp"
 #include "global.hpp"
+#include "scene/material.hpp"
 
 class Object {
    public:
@@ -44,8 +44,6 @@ std::shared_ptr<Texture<T>> Object::load_texture(
     static_assert(std::is_same<T, float>::value ||
                   std::is_same<T, vec3>::value);
 
-    std::cout << "Load texture: " << texname << std::endl;
-
     std::unordered_map<std::string, std::shared_ptr<Texture<T>>> *texture_map;
     if constexpr (std::is_same<T, float>::value) {  // float
         texture_map = &texture1_map;
@@ -58,9 +56,10 @@ std::shared_ptr<Texture<T>> Object::load_texture(
         texture_map->end()) {  // loaded texture found
         tex_ptr = texture_map->at(texname);
     } else {  // not found
+        std::cout << "Load texture: " << texname << std::endl;
         tex_ptr = std::make_shared<Texture<T>>();
         texture_map->emplace(texname, tex_ptr);
-        tex_ptr->read_img(base_path / texname);
+        tex_ptr->read_img(base_path / texname, false);
     }
     return tex_ptr;
 }

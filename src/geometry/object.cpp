@@ -3,11 +3,11 @@
 #include <cmath>
 #include <iostream>
 
-#include "geometry/material.hpp"
 #include "geometry/shape.hpp"
 #include "geometry/triangle.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
+#include "scene/material.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -107,6 +107,8 @@ void Object::model_transform() {
 
 bool Object::load_model(const std::string& filename,
                         const std::string& basepath) {
+    std::cout << "Load model: " << filename << std::endl;
+
     tinyobj::attrib_t t_attrib;
     std::vector<tinyobj::shape_t> t_shapes;
     std::vector<tinyobj::material_t> t_materials;
@@ -122,6 +124,11 @@ bool Object::load_model(const std::string& filename,
         printf("Failed to load/parse .obj.\n");
         return false;
     }
+
+    std::cout << "Vertices count: " << t_attrib.vertices.size() / 3
+              << std::endl;
+    std::cout << "Shapes count: " << shapes.size() << std::endl;
+    std::cout << "Materials cout: " << materials.size() << std::endl;
 
     vertices.reserve(t_attrib.vertices.size() / 3);
     for (size_t i = 0; i < t_attrib.vertices.size(); i += 3) {
@@ -165,13 +172,18 @@ bool Object::load_model(const std::string& filename,
         material->dissolve = t_material.dissolve;
         material->illum = t_material.illum;
 
-        // material.ambient_texname = t_material.ambient_texname;
-        if (!t_material.diffuse_texname.empty()) {
-            auto texture =
+        if (!t_material.ambient_texname.empty())
+            material->ambient_texture =
+                load_texture<vec3>(t_material.ambient_texname, basepath);
+
+        if (!t_material.diffuse_texname.empty())
+            material->diffuse_texture =
                 load_texture<vec3>(t_material.diffuse_texname, basepath);
-            material->diffuse_texture = std::move(texture);
-        }
-        // material.specular_texname = t_material.specular_texname;
+
+        if (!t_material.specular_texname.empty())
+            material->specular_texture =
+                load_texture<vec3>(t_material.specular_texname, basepath);
+
         // material.specular_highlight_texname =
         //     t_material.specular_highlight_texname;
         // material.bump_texname = t_material.bump_texname;
@@ -196,17 +208,15 @@ bool Object::load_model(const std::string& filename,
         materials.emplace_back(std::move(material));
     }
 
+    size_t faces_count = 0;
+
     // For each shape
     for (auto& t_shape : t_shapes) {
         auto shape = Shape();
 
         size_t index_offset = 0;
 
-        // assert(t_shape.mesh.num_face_vertices.size() ==
-        //        t_shape.mesh.material_ids.size());
-
-        // assert(t_shape.mesh.num_face_vertices.size() ==
-        //        t_shape.mesh.smoothing_group_ids.size());
+        faces_count += t_shape.mesh.num_face_vertices.size();
 
         // For each face
         shape.triangles.reserve(t_shape.mesh.num_face_vertices.size());
@@ -241,6 +251,8 @@ bool Object::load_model(const std::string& filename,
 
         shapes.emplace_back(std::move(shape));
     }
+
+    std::cout << "Faces count: " << faces_count << std::endl;
 
     return true;
 }

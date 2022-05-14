@@ -25,17 +25,6 @@ float Triangle::truncate_y_ss(float y, const Camera &camera) {
     return y;
 }
 
-float Triangle::truncate_color(float color) {
-    color = std::min(color, 1.f);
-    color = std::max(color, 0.f);
-    return color;
-}
-
-vec3 Triangle::truncate_color(const vec3 &color) {
-    return vec3(truncate_color(color.x()), truncate_color(color.y()),
-                truncate_color(color.z()));
-}
-
 bool Triangle::is_inside_ss(const vec3 &w) const {
     return -EPS < w.x() && -EPS < w.y() && -EPS < w.z();
 }
@@ -121,8 +110,7 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
                                                 *texcoords[2]),
                                 w);
 
-    return truncate_color(
-        fragment_shader->shade(pos, normal, uv, material.get()));
+    return fragment_shader->shade(pos, normal, uv, material.get());
 }
 
 void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,

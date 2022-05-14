@@ -3,11 +3,9 @@
 
 #include <vector>
 
-#include "camera.hpp"
-#include "geometry/material.hpp"
 #include "geometry/object.hpp"
-#include "light.hpp"
-#include "texture.hpp"
+#include "scene/camera.hpp"
+#include "scene/light.hpp"
 
 class Scene {
    public:
@@ -15,7 +13,6 @@ class Scene {
     std::vector<Light> lights;
 
     Camera camera;
-    Scene();
 };
 
 #endif

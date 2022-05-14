@@ -5,10 +5,10 @@
 #include <tuple>
 #include <vector>
 
-#include "camera.hpp"
-#include "geometry/material.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
+#include "scene/camera.hpp"
+#include "scene/material.hpp"
 #include "shader/fragment_shader.hpp"
 #include "texture.hpp"
 
@@ -34,8 +34,6 @@ class Triangle {
     static float cross2d(const vec2 &v1, const vec2 &v2);
     static float truncate_x_ss(float x, const Camera &camera);
     static float truncate_y_ss(float y, const Camera &camera);
-    static float truncate_color(float color);
-    static vec3 truncate_color(const vec3 &color);
 
     vec3 bary_coord_ss(const vec2 &screen_pos) const;
 

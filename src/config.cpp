@@ -1,10 +1,11 @@
 #include "config.hpp"
 
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 
-#include "camera.hpp"
-#include "geometry/material.hpp"
+#include "scene/camera.hpp"
+#include "scene/material.hpp"
 
 Config::Config(const std::string &filename) : filename(filename) {}
 
@@ -17,6 +18,8 @@ Eigen::VectorXf Config::to_vector(const YAML::Node &yaml_array) {
 }
 
 bool Config::load_scene(Scene *scene) const {
+    std::cout << "Load scene from config: " << filename << std::endl;
+
     auto yaml_config = YAML::LoadFile(filename);
 
     // objects

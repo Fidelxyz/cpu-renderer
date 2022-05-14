@@ -2,7 +2,6 @@
 #define GLOBAL_H
 
 #include <Eigen/Core>
-#include <cmath>
 
 using vec2 = Eigen::Vector2f;
 using vec3 = Eigen::Vector3f;
@@ -20,5 +19,7 @@ using ivec3 = Eigen::Vector3i;
 using ivec4 = Eigen::Vector4i;
 
 const float EPS = 1e-5;
+
+#define MSAA
 
 #endif

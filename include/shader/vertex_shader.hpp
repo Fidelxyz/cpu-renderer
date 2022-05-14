@@ -1,7 +1,7 @@
 #ifndef VERTEX_SHADER_H
 #define VERTEX_SHADER_H
 
-#include "camera.hpp"
+#include "scene/camera.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 

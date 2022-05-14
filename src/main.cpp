@@ -1,16 +1,12 @@
 #include <chrono>
-#include <cstdio>
-#include <iostream>
 #include <memory>
-#include <unordered_map>
 
-#include "camera.hpp"
 #include "config.hpp"
-#include "geometry/material.hpp"
 #include "geometry/object.hpp"
 #include "global.hpp"
-#include "light.hpp"
-#include "scene.hpp"
+#include "scene/camera.hpp"
+#include "scene/light.hpp"
+#include "scene/scene.hpp"
 #include "shader/fragment_shader.hpp"
 #include "shader/vertex_shader.hpp"
 #include "texture.hpp"
@@ -30,9 +26,11 @@ void render(Scene &scene) {
         }
     }
 
-    Texture<float> z_buffer(scene.camera.width, scene.camera.height, 1.f);
+    size_t buffer_depth = scene.camera.msaa ? 4 : 1;
+    Texture<float> z_buffer(scene.camera.width, scene.camera.height,
+                            buffer_depth, 1.f);
     Texture<vec3> frame_buffer(scene.camera.width, scene.camera.height,
-                               vec3(0, 0, 0));
+                               buffer_depth, vec3(0, 0, 0));
 
     {
         Timer timer("Trianglar rasterize");
@@ -46,7 +44,7 @@ void render(Scene &scene) {
         }
     }
 
-    frame_buffer.write_img("out.png");
+    frame_buffer.write_img("out.png", false);
 }
 
 int main(int argc, char *argv[]) {
@@ -65,5 +63,5 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-// TODO Material 中的 Texture 指针（Texture 复用）
-// TODO Gamma correction
+// TODO MSAA
+// TODO Multi-thread

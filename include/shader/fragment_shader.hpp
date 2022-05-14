@@ -3,11 +3,10 @@
 
 #include <vector>
 
-#include "camera.hpp"
-#include "geometry/material.hpp"
 #include "global.hpp"
-#include "light.hpp"
-#include "texture.hpp"
+#include "scene/camera.hpp"
+#include "scene/light.hpp"
+#include "scene/material.hpp"
 
 class FragmentShader {
    public:

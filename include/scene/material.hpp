@@ -2,8 +2,6 @@
 #define MATERIAL_H
 
 #include <memory>
-#include <opencv2/opencv.hpp>
-#include <string>
 
 #include "global.hpp"
 #include "texture.hpp"
@@ -20,9 +18,9 @@ class Material {
     float dissolve = 0;
     float illum = 0;
 
-    // Texture<vec3> *ambient_texture = nullptr;
-    std::shared_ptr<Texture<vec3>> diffuse_texture = nullptr;
-    std::shared_ptr<Texture<vec3>> specular_texture = nullptr;
+    std::shared_ptr<Texture<vec3>> ambient_texture;
+    std::shared_ptr<Texture<vec3>> diffuse_texture;
+    std::shared_ptr<Texture<vec3>> specular_texture;
 
     // std::string ambient_texname;
     // std::string diffuse_texname;
@@ -47,8 +45,6 @@ class Material {
     // std::string metallic_texname;
     // std::string sheen_texname;
     // std::string normal_texname;
-
-    Material();
 };
 
 #endif

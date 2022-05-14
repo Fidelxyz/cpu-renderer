@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 #include <string>
 
-#include "scene.hpp"
+#include "scene/scene.hpp"
 #include "yaml-cpp/yaml.h"
 
 class Config {

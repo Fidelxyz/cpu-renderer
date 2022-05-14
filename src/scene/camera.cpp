@@ -1,4 +1,4 @@
-#include "camera.hpp"
+#include "scene/camera.hpp"
 
 Camera::Camera() {}
 

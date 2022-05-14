@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include <Eigen/Core>
+#include <cmath>
 #include <opencv2/opencv.hpp>
 #include <string>
 
@@ -23,13 +24,18 @@ class Texture {
     Texture(Texture &&src);
     ~Texture();
 
-    inline T &at(const size_t x, const size_t y,
-                 const size_t channel = 0) const;
+    inline T &at(const size_t x, const size_t y, const size_t z = 0) const;
 
     inline bool isNull() const;
 
-    void read_img(const std::string &filename);
-    void write_img(const std::string &filename) const;
+    void read_img(const std::string &filename, const bool linear);
+    void write_img(const std::string &filename, const bool linear) const;
+
+    static float gamma_correction(const float val, const float gamma);
+    static vec3 gamma_correction(const vec3 &val, const float gamma);
+
+    static float truncate_color(float color);
+    static vec3 truncate_color(const vec3 &color);
 
     T sample(const vec2 &uv) const;
 };
@@ -42,16 +48,16 @@ Texture<T>::Texture() {
 }
 
 template <typename T>
-Texture<T>::Texture(const size_t width, const size_t height, const T init_val)
-    : Texture(width, height) {
-    std::fill(data, data + width * height, init_val);
-}
-
-template <typename T>
 Texture<T>::Texture(const size_t width, const size_t height) {
     this->width = width;
     this->height = height;
     this->data = new T[width * height];
+}
+
+template <typename T>
+Texture<T>::Texture(const size_t width, const size_t height, const T init_val)
+    : Texture(width, height) {
+    std::fill(data, data + width * height, init_val);
 }
 
 template <typename T>
@@ -68,8 +74,7 @@ Texture<T>::~Texture() {
 }
 
 template <typename T>
-inline T &Texture<T>::at(const size_t x, const size_t y,
-                         const size_t channel) const {
+inline T &Texture<T>::at(const size_t x, const size_t y, const size_t z) const {
     return data[y * width + x];
 }
 
@@ -79,7 +84,7 @@ inline bool Texture<T>::isNull() const {
 }
 
 template <typename T>
-void Texture<T>::read_img(const std::string &filename) {
+void Texture<T>::read_img(const std::string &filename, const bool linear) {
     // only support Gray and RGB image
     static_assert(std::is_same<T, float>::value ||
                   std::is_same<T, vec3>::value);
@@ -91,8 +96,8 @@ void Texture<T>::read_img(const std::string &filename) {
         img = cv::imread(filename, cv::IMREAD_COLOR);
     }
     // re-allowcate space
-    if (img.rows != static_cast<int>(width) ||
-        img.cols != static_cast<int>(height)) {
+    if (static_cast<int>(width) != img.rows ||
+        static_cast<int>(height) != img.cols) {
         width = img.rows;
         height = img.cols;
         delete[] data;
@@ -102,19 +107,21 @@ void Texture<T>::read_img(const std::string &filename) {
     // write data
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
-            if constexpr (std::is_same<T, float>::value) {
+            if constexpr (std::is_same<T, float>::value) {  // float
                 at(x, y) = img.at<uchar>(y, x) / 255.f;
-            } else {
+            } else {  // vec3
                 at(x, y)[0] = img.at<cv::Vec3b>(y, x)[2] / 255.f;
                 at(x, y)[1] = img.at<cv::Vec3b>(y, x)[1] / 255.f;
                 at(x, y)[2] = img.at<cv::Vec3b>(y, x)[0] / 255.f;
             }
+            if (!linear) at(x, y) = gamma_correction(at(x, y), 2.2f);
         }
     }
 }
 
 template <typename T>
-void Texture<T>::write_img(const std::string &filename) const {
+void Texture<T>::write_img(const std::string &filename,
+                           const bool linear) const {
     // only support Gray and RGB image
     static_assert(std::is_same<T, float>::value ||
                   std::is_same<T, vec3>::value);
@@ -128,12 +135,14 @@ void Texture<T>::write_img(const std::string &filename) const {
 
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
+            T t = truncate_color(at(x, y));
+            if (!linear) t = gamma_correction(t, 1.f / 2.2f);
             if constexpr (std::is_same<T, float>::value) {  // float
-                img.at<uchar>(y, x) = at(x, y) * 255.f;
+                img.at<uchar>(y, x) = t * 255.f;
             } else {  // vec3
-                img.at<cv::Vec3b>(y, x)[2] = at(x, y)[0] * 255.f;
-                img.at<cv::Vec3b>(y, x)[1] = at(x, y)[1] * 255.f;
-                img.at<cv::Vec3b>(y, x)[0] = at(x, y)[2] * 255.f;
+                img.at<cv::Vec3b>(y, x)[2] = t[0] * 255.f;
+                img.at<cv::Vec3b>(y, x)[1] = t[1] * 255.f;
+                img.at<cv::Vec3b>(y, x)[0] = t[2] * 255.f;
             }
         }
     }
@@ -166,6 +175,31 @@ T Texture<T>::sample(const vec2 &uv) const {
 
     return (1.f - wy) * ((1.f - wx) * sample_xlyl + wx * sample_xryl) +
            wy * ((1.f - wx) * sample_xlyr + wx * sample_xryr);
+}
+
+template <typename T>
+float Texture<T>::gamma_correction(const float val, const float gamma) {
+    return std::pow(val, gamma);
+}
+
+template <typename T>
+vec3 Texture<T>::gamma_correction(const vec3 &val, const float gamma) {
+    return vec3(gamma_correction(val.x(), gamma),
+                gamma_correction(val.y(), gamma),
+                gamma_correction(val.z(), gamma));
+}
+
+template <typename T>
+float Texture<T>::truncate_color(float color) {
+    color = std::min(color, 1.f);
+    // color = std::max(color, 0.f);
+    return color;
+}
+
+template <typename T>
+vec3 Texture<T>::truncate_color(const vec3 &color) {
+    return vec3(truncate_color(color.x()), truncate_color(color.y()),
+                truncate_color(color.z()));
 }
 
 #endif
