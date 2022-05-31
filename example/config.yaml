@@ -24,7 +24,7 @@ objects:
   - path: ../example/models/keqing/keqing.obj
     basepath: ../example/models/keqing/
     pos: [0, -0.08, -0.1]
-    rotation: [0, 180, 0]
+    rotation: [0, 150, 0]
     scale: [0.1, 0.1, 0.1]
 lights:
   - pos: [1.0, 1.0, -1.0]
@@ -38,7 +38,7 @@ camera:
   look_dir: [0.0, 0.0, 1.0]
   up_dir: [0.0, -1.0, 0.0]
   fov: 45.0
-  near_plane: 0.1
+  near_plane: 0.01
   far_plane: 300.0
   width: 1920
   height: 1080

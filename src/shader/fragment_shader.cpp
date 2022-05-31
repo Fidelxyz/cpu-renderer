@@ -11,16 +11,16 @@ FragmentShader::FragmentShader(const Camera &camera,
 }
 
 vec3 FragmentShader::shade(const vec3 &pos, const vec3 &normal, const vec2 &uv,
-                           Material *material) {
+                           const vec2 &duv, Material *material) {
     vec3 diffuse_shading = vec3(0, 0, 0);
     vec3 specular_shading = vec3(0, 0, 0);
 
     vec3 diffuse = material->diffuse_texture
-                       ? material->diffuse_texture->sample(uv)
+                       ? material->diffuse_texture->sample(uv, duv)
                        : material->diffuse;
 
     vec3 specular = material->specular_texture
-                        ? material->specular_texture->sample(uv)
+                        ? material->specular_texture->sample(uv, duv)
                         : material->specular;
 
     vec3 eye_dir = (eye_pos - pos).normalized();

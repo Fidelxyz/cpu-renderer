@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
+#include "global.hpp"
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 
@@ -49,12 +50,12 @@ bool Config::load_scene(Scene *scene) const {
                 material->shininess = yaml_material["shininess"].as<float>();
 
             if (yaml_material["diffuse-texname"])
-                material->diffuse_texture = object.load_texture<vec3>(
+                material->diffuse_texture = object.load_mipmap<vec3>(
                     yaml_material["diffuse-texname"].as<std::string>(),
                     base_path);
 
             if (yaml_material["specular-texname"])
-                material->specular_texture = object.load_texture<vec3>(
+                material->specular_texture = object.load_mipmap<vec3>(
                     yaml_material["specular-texname"].as<std::string>(),
                     base_path);
 

@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "global.hpp"
+#include "texture/mipmap.hpp"
 
 Triangle::Triangle() {}
 
@@ -90,6 +91,7 @@ T Triangle::interpolate(const std::tuple<T, T, T> &vals,
 }
 
 vec3 Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
+                     const vec2 &uv, const vec2 &duv,
                      FragmentShader *fragment_shader) const {
     // perspective-corrected interpolate
     auto w = corrected_bary_coord(bary_coord);
@@ -104,25 +106,42 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
             : interpolate(
                   std::make_tuple(*normals[0], *normals[1], *normals[2]), w);
 
-    vec2 uv = texcoords.empty()
-                  ? vec2(0, 0)
-                  : interpolate(std::make_tuple(*texcoords[0], *texcoords[1],
-                                                *texcoords[2]),
-                                w);
-
-    return fragment_shader->shade(pos, normal, uv, material.get());
+    return fragment_shader->shade(pos, normal, uv, duv, material.get());
 }
 
-#ifdef MSAA
-void Triangle::rasterize(Texture<std::array<vec3, 4>> *frame_buffer,
-                         Texture<std::array<float, 4>> *z_buffer,
+std::tuple<vec2, vec2> Triangle::calc_uv(
+    const vec3 &bary_coord_shading, const vec3 &bary_coord_lod_x_delta,
+    const vec3 &bary_coord_lod_y_delta) const {
+    vec2 uv, duv;
+    if (texcoords.empty()) {
+        uv = vec2(0, 0);
+        duv = vec2(1, 1);
+    } else {
+        auto texcoord_tuple =
+            std::make_tuple(*texcoords[0], *texcoords[1], *texcoords[2]);
+
+        // perspective-corrected interpolate
+        auto w_shading = corrected_bary_coord(bary_coord_shading);
+        auto w_x =
+            corrected_bary_coord(bary_coord_shading + bary_coord_lod_x_delta);
+        auto w_y =
+            corrected_bary_coord(bary_coord_shading + bary_coord_lod_y_delta);
+
+        uv = interpolate(texcoord_tuple, w_shading);
+        vec2 ddx =
+            (interpolate(texcoord_tuple, w_x) - uv) / mipmap::LOD_SAMPLE_DELTA;
+        vec2 ddy =
+            (interpolate(texcoord_tuple, w_y) - uv) / mipmap::LOD_SAMPLE_DELTA;
+        float du = (std::fabs(ddx.x()) + std::fabs(ddy.x())) / 2.f;
+        float dv = (std::fabs(ddx.y()) + std::fabs(ddy.y())) / 2.f;
+        duv = vec2(du, dv);
+    }
+    return std::make_tuple(uv, duv);
+}
+
+void Triangle::rasterize(frame_buffer_t *frame_buffer, z_buffer_t *z_buffer,
                          FragmentShader *fragment_shader,
                          const Camera &camera) const {
-#else
-void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
-                         FragmentShader *fragment_shader,
-                         const Camera &camera) const {
-#endif
     auto v1 = vertices[0];
     auto v2 = vertices[1];
     auto v3 = vertices[2];
@@ -149,61 +168,79 @@ void Triangle::rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
     vec3 bary_coord_dy =
         bary_coord_ss(vec2(min_x + 0.5f, min_y + 1.5f)) - bary_coord_init;
 
-#ifdef MSAA
-    vec3 bary_coord_sample_dx =
-        bary_coord_ss(vec2(min_x + 0.75f, min_y + 0.5f)) - bary_coord_init;
-    vec3 bary_coord_sample_dy =
-        bary_coord_ss(vec2(min_x + 0.5f, min_y + 0.75f)) - bary_coord_init;
-#endif
+    vec3 bary_coord_samples_delta[msaa::MSAA_LEVEL];
+    for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
+        bary_coord_samples_delta[i] =
+            bary_coord_ss(vec2(min_x, min_y) + msaa::samples_coord_delta[i]) -
+            bary_coord_init;
+    }
+
+    vec3 bary_coord_lod_x_delta =
+        bary_coord_ss(
+            vec2(min_x + 0.5f + mipmap::LOD_SAMPLE_DELTA, min_y + 0.5f)) -
+        bary_coord_init;
+    vec3 bary_coord_lod_y_delta =
+        bary_coord_ss(
+            vec2(min_x + 0.5f, min_y + 0.5f + mipmap::LOD_SAMPLE_DELTA)) -
+        bary_coord_init;
 
     vec3 bary_coord_y = bary_coord_init;
     for (int pixel_y = min_y; pixel_y < max_y; pixel_y++) {
         vec3 bary_coord_x = bary_coord_y;
         for (int pixel_x = min_x; pixel_x < max_x; pixel_x++) {
-#ifdef MSAA
-            std::array<vec3, 4> bary_coord_samples = {
-                bary_coord_x - bary_coord_sample_dx - bary_coord_sample_dy,
-                bary_coord_x + bary_coord_sample_dx - bary_coord_sample_dy,
-                bary_coord_x - bary_coord_sample_dx + bary_coord_sample_dy,
-                bary_coord_x + bary_coord_sample_dx + bary_coord_sample_dy};
-            unsigned char covered = 0;
-            int covered_count = 0;
-            vec3 bary_coord_shading = vec3(0, 0, 0);
-            for (size_t i = 0; i < 4; i++) {
+            vec3 bary_coord_samples[msaa::MSAA_LEVEL];
+            unsigned char covered_flag = 0;
+            for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
+                bary_coord_samples[i] =
+                    bary_coord_x + bary_coord_samples_delta[i];
                 if (is_inside_ss(bary_coord_samples[i])) {
                     float z = interpolate_z_ss(bary_coord_samples[i]);
                     if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {
                         z_buffer->at(pixel_x, pixel_y)[i] = z;
-                        covered |= 1u << i;
-                        bary_coord_shading += bary_coord_samples[i];
-                        covered_count++;
+                        covered_flag |= 1u << i;
                     }
                 }
             }
-            if (covered) {
-                bary_coord_shading /= covered_count;
-                vec3 shading = shade(pixel_x, pixel_y, bary_coord_shading,
-                                     fragment_shader);
-                for (size_t i = 0; i < 4; i++) {
-                    if (covered & (1u << i)) {
+
+            if (covered_flag) {
+                const bool full_covered =
+                    covered_flag == (1u << msaa::MSAA_LEVEL) - 1;
+
+                vec3 bary_coord_shading;
+
+                if (full_covered) {  // All samples covered
+                    bary_coord_shading = bary_coord_x;
+                } else {  // Partical samples covered
+                    bary_coord_shading = vec3(0, 0, 0);
+                    int covered_count = 0;
+                    for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
+                        if ((covered_flag >> i) & 1) {
+                            bary_coord_shading += bary_coord_samples[i];
+                            covered_count++;
+                        }
+                    }
+                    bary_coord_shading /= covered_count;
+                }
+
+                auto [uv, duv] =
+                    calc_uv(bary_coord_shading, bary_coord_lod_x_delta,
+                            bary_coord_lod_y_delta);
+                vec3 shading = shade(pixel_x, pixel_y, bary_coord_shading, uv,
+                                     duv, fragment_shader);
+
+                if (full_covered) {
+                    for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
                         frame_buffer->at(pixel_x, pixel_y)[i] = shading;
                     }
+                } else {
+                    for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
+                        if (covered_flag & (1u << i)) {
+                            frame_buffer->at(pixel_x, pixel_y)[i] = shading;
+                        }
+                    }
                 }
             }
-#else
-            if (is_inside_ss(bary_coord_x)) {
-                // screen space interpolate
-                float z = interpolate_z_ss(bary_coord_x);
-                if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)) {
-                    z_buffer->at(pixel_x, pixel_y) = z;
-                    vec3 shading =
-                        shade(pixel_x, pixel_y, bary_coord_x, fragment_shader);
 
-                    // write into frame buffer
-                    frame_buffer->at(pixel_x, pixel_y) = std::move(shading);
-                }
-            }
-#endif
             bary_coord_x += bary_coord_dx;
         }
         bary_coord_y += bary_coord_dy;

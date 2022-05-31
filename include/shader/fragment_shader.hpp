@@ -1,3 +1,4 @@
+#pragma once
 #ifndef FRAGMENT_SHADER_H
 #define FRAGMENT_SHADER_H
 
@@ -15,7 +16,7 @@ class FragmentShader {
 
     FragmentShader(const Camera &camera, std::vector<Light> &lights);
     vec3 shade(const vec3 &pos, const vec3 &normal, const vec2 &uv,
-               Material *material);
+               const vec2 &duv, Material *material);
 };
 
 #endif

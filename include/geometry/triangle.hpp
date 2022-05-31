@@ -1,17 +1,18 @@
+#pragma once
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-#include <array>
 #include <memory>
 #include <tuple>
 #include <vector>
 
+#include "effects/msaa.hpp"
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 #include "shader/fragment_shader.hpp"
-#include "texture.hpp"
+#include "texture/texture.hpp"
 
 class Triangle {
    public:
@@ -28,14 +29,8 @@ class Triangle {
     // Return if the point is inside the triangle in the screen space.
     bool is_inside_ss(const vec3 &w_ss) const;
 
-#ifdef MSAA
-    void rasterize(Texture<std::array<vec3, 4>> *frame_buffer,
-                   Texture<std::array<float, 4>> *z_buffer,
+    void rasterize(frame_buffer_t *frame_buffer, z_buffer_t *z_buffer,
                    FragmentShader *fragment_shader, const Camera &camera) const;
-#else
-    void rasterize(Texture<vec3> *frame_buffer, Texture<float> *z_buffer,
-                   FragmentShader *fragment_shader, const Camera &camera) const;
-#endif
 
    private:
     static float cross2d(const vec2 &v1, const vec2 &v2);
@@ -54,7 +49,12 @@ class Triangle {
                          const std::tuple<float, float, float> &weights);
 
     vec3 shade(size_t pixel_x, size_t pixel_y, const vec3 &bary_coord,
+               const vec2 &uv, const vec2 &duv,
                FragmentShader *fragment_shader) const;
+
+    std::tuple<vec2, vec2> calc_uv(const vec3 &bary_coord_shading,
+                                   const vec3 &bary_coord_lod_x_delta,
+                                   const vec3 &bary_coord_lod_y_delta) const;
 };
 
 #endif

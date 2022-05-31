@@ -1,3 +1,4 @@
+#pragma once
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
@@ -24,11 +25,13 @@ class Texture {
     Texture(Texture &&src);
     ~Texture();
 
+    Texture<T> &operator=(Texture<T> &&src);
+
     inline T &at(const size_t x, const size_t y) const;
     inline T &at(const size_t index) const;
     inline T &operator[](const size_t index) const;
 
-    inline bool isNull() const;
+    inline bool is_null() const;
 
     void read_img(const std::string &filename, const bool linear);
     void write_img(const std::string &filename, const bool linear) const;
@@ -76,6 +79,15 @@ Texture<T>::~Texture() {
 }
 
 template <typename T>
+Texture<T> &Texture<T>::operator=(Texture &&src) {
+    width = std::move(src.width);
+    height = std::move(src.height);
+    data = std::move(src.data);
+    src.data = nullptr;
+    return *this;
+}
+
+template <typename T>
 inline T &Texture<T>::at(const size_t x, const size_t y) const {
     return data[y * width + x];
 }
@@ -91,7 +103,7 @@ inline T &Texture<T>::operator[](const size_t index) const {
 }
 
 template <typename T>
-inline bool Texture<T>::isNull() const {
+inline bool Texture<T>::is_null() const {
     return data == nullptr;
 }
 
@@ -177,8 +189,8 @@ T Texture<T>::sample(const vec2 &uv) const {
     int yl = std::floor(y - 0.5f);
     int yr = yl + 1;
 
-    float wx = (xl + 0.5f) - x;
-    float wy = (yl + 0.5f) - y;
+    float wx = x - (xl + 0.5f);
+    float wy = y - (yl + 0.5f);
 
     T sample_xlyl = at(xl, yl);
     T sample_xlyr = at(xl, yr);

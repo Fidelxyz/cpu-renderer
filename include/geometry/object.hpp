@@ -1,3 +1,4 @@
+#pragma once
 #ifndef OBJECT_H
 #define OBJECT_H
 
@@ -25,6 +26,9 @@ class Object {
         texture1_map;
     std::unordered_map<std::string, std::shared_ptr<Texture<vec3>>>
         texture3_map;
+    std::unordered_map<std::string, std::shared_ptr<Mipmap<float>>> mipmap1_map;
+    std::unordered_map<std::string, std::shared_ptr<Mipmap<vec3>>> mipmap3_map;
+
     std::vector<std::shared_ptr<Material>> materials;
 
     std::vector<Shape> shapes;
@@ -35,6 +39,10 @@ class Object {
 
     template <typename T>
     std::shared_ptr<Texture<T>> load_texture(
+        const std::string &texname, const std::filesystem::path &base_path);
+
+    template <typename T>
+    std::shared_ptr<Mipmap<T>> load_mipmap(
         const std::string &texname, const std::filesystem::path &base_path);
 };
 
@@ -62,6 +70,31 @@ std::shared_ptr<Texture<T>> Object::load_texture(
         tex_ptr->read_img(base_path / texname, false);
     }
     return tex_ptr;
+}
+
+template <typename T>
+std::shared_ptr<Mipmap<T>> Object::load_mipmap(
+    const std::string &texname, const std::filesystem::path &base_path) {
+    static_assert(std::is_same<T, float>::value ||
+                  std::is_same<T, vec3>::value);
+
+    std::unordered_map<std::string, std::shared_ptr<Mipmap<T>>> *mipmap_map;
+    if constexpr (std::is_same<T, float>::value) {  // float
+        mipmap_map = &mipmap1_map;
+    } else {  // vec3
+        mipmap_map = &mipmap3_map;
+    }
+
+    std::shared_ptr<Mipmap<T>> mipmap_ptr = nullptr;
+    if (mipmap_map->find(texname) !=
+        mipmap_map->end()) {  // loaded mipmap found
+        mipmap_ptr = mipmap_map->at(texname);
+    } else {  // not found
+        std::shared_ptr<Texture<T>> texture =
+            load_texture<T>(texname, base_path);
+        mipmap_ptr = std::make_shared<Mipmap<T>>(texture);
+    }
+    return mipmap_ptr;
 }
 
 #endif

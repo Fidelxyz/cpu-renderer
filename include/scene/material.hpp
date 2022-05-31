@@ -1,10 +1,12 @@
+#pragma once
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
 #include <memory>
 
+#include "texture/mipmap.hpp"
 #include "global.hpp"
-#include "texture.hpp"
+#include "texture/texture.hpp"
 
 class Material {
    public:
@@ -18,9 +20,9 @@ class Material {
     float dissolve = 0;
     float illum = 0;
 
-    std::shared_ptr<Texture<vec3>> ambient_texture;
-    std::shared_ptr<Texture<vec3>> diffuse_texture;
-    std::shared_ptr<Texture<vec3>> specular_texture;
+    std::shared_ptr<Mipmap<vec3>> ambient_texture;
+    std::shared_ptr<Mipmap<vec3>> diffuse_texture;
+    std::shared_ptr<Mipmap<vec3>> specular_texture;
 
     // std::string ambient_texname;
     // std::string diffuse_texname;

@@ -1,6 +1,6 @@
 ```
 Scene -- Object -- Shape +- Triangle -- Vertex
-                         +- Material
+                         +- Material -- (Mipmap) -- Texture
 ```
 
 Camera

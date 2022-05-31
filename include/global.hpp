@@ -1,3 +1,4 @@
+#pragma once
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
@@ -20,7 +21,6 @@ using ivec4 = Eigen::Vector4i;
 
 const float EPS = 1e-4;
 
-#define MSAA
 #define MIPMAP 4
 
 #endif

@@ -174,15 +174,15 @@ bool Object::load_model(const std::string& filename,
 
         if (!t_material.ambient_texname.empty())
             material->ambient_texture =
-                load_texture<vec3>(t_material.ambient_texname, basepath);
+                load_mipmap<vec3>(t_material.ambient_texname, basepath);
 
         if (!t_material.diffuse_texname.empty())
             material->diffuse_texture =
-                load_texture<vec3>(t_material.diffuse_texname, basepath);
+                load_mipmap<vec3>(t_material.diffuse_texname, basepath);
 
         if (!t_material.specular_texname.empty())
             material->specular_texture =
-                load_texture<vec3>(t_material.specular_texname, basepath);
+                load_mipmap<vec3>(t_material.specular_texname, basepath);
 
         // material.specular_highlight_texname =
         //     t_material.specular_highlight_texname;
