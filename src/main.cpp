@@ -1,3 +1,5 @@
+#include <omp.h>
+
 #include <array>
 #include <chrono>
 #include <memory>
@@ -22,6 +24,7 @@ void render(Scene &scene) {
         Timer timer("Vertex shader");
         for (auto &object : scene.objects) {
             object.model_transform();
+#pragma omp parallel for
             for (auto &vertex : object.vertices) {
                 vertex_shader.shade(vertex.get());
             }
@@ -35,12 +38,19 @@ void render(Scene &scene) {
         scene.camera.width, scene.camera.height,
         msaa::texture_init_val(vec3(0, 0, 0)));
 
+    // init mutex
+    Texture<omp_lock_t> mutex(scene.camera.width, scene.camera.height);
+    for (auto &m : mutex) {
+        omp_init_lock(&m);
+    }
+
     {
         Timer timer("Trianglar rasterize");
         for (auto &object : scene.objects) {
             for (auto &shape : object.shapes) {
+#pragma omp parallel for
                 for (auto &triangle : shape.triangles) {
-                    triangle.rasterize(&frame_buffer, &z_buffer,
+                    triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
                                        &fragment_shader, scene.camera);
                 }
             }
@@ -49,6 +59,11 @@ void render(Scene &scene) {
 
     Texture<vec3> frame_result = msaa::msaa_filter(frame_buffer);
     frame_result.write_img("out.png", false);
+
+    // destroy mutex
+    for (auto &m : mutex) {
+        omp_destroy_lock(&m);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -56,6 +71,14 @@ int main(int argc, char *argv[]) {
     {
         Timer timer("Load");
         auto config = Config("../example/config.yaml");
+
+        // load threads_num
+        int threads_num;
+        if (config.load_threads_num(&threads_num)) {
+            omp_set_num_threads(threads_num);
+        }
+
+        // load scene
         if (!config.load_scene(&scene)) return 0;
     }
 
@@ -66,5 +89,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-// TODO Multi-thread

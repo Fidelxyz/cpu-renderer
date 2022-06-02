@@ -8,6 +8,11 @@
 #include "global.hpp"
 #include "texture/texture.hpp"
 
+namespace mipmap {
+const float LOD_SAMPLE_DELTA = 0.1;
+const int MIPMAP_LEVEL = 4;
+}  // namespace mipmap
+
 template <typename T>
 class Mipmap {
    public:
@@ -16,7 +21,8 @@ class Mipmap {
     T sample(const vec2 &uv, const vec2 &duv) const;
 
    private:
-    std::shared_ptr<Texture<T>> texture[MIPMAP][MIPMAP];
+    std::shared_ptr<Texture<T>> texture[mipmap::MIPMAP_LEVEL]
+                                       [mipmap::MIPMAP_LEVEL];
 
     std::tuple<float, float> calc_lod(const vec2 &duv) const;
 };
@@ -24,7 +30,7 @@ class Mipmap {
 template <typename T>
 Mipmap<T>::Mipmap(const std::shared_ptr<Texture<T>> &src) {
     texture[0][0] = src;
-    for (size_t lod_y = 0; lod_y < MIPMAP; lod_y++) {
+    for (size_t lod_y = 0; lod_y < mipmap::MIPMAP_LEVEL; lod_y++) {
         if (lod_y != 0) {
             texture[lod_y][0] =
                 std::make_shared<Texture<T>>(texture[lod_y - 1][0]->width,
@@ -38,7 +44,7 @@ Mipmap<T>::Mipmap(const std::shared_ptr<Texture<T>> &src) {
                 }
             }
         }
-        for (size_t lod_x = 1; lod_x < MIPMAP; lod_x++) {
+        for (size_t lod_x = 1; lod_x < mipmap::MIPMAP_LEVEL; lod_x++) {
             texture[lod_y][lod_x] = std::make_shared<Texture<T>>(
                 texture[lod_y][lod_x - 1]->width / 2,
                 texture[lod_y][lod_x - 1]->height);
@@ -63,7 +69,7 @@ std::tuple<float, float> Mipmap<T>::calc_lod(const vec2 &duv) const {
 
 template <typename T>
 T Mipmap<T>::sample(const vec2 &uv, const vec2 &duv) const {
-    if constexpr (MIPMAP == 1) {
+    if constexpr (mipmap::MIPMAP_LEVEL == 1) {
         return texture[0][0]->sample(uv);
     }
 
@@ -71,9 +77,9 @@ T Mipmap<T>::sample(const vec2 &uv, const vec2 &duv) const {
 
     // truncate lod
     lod_x = std::max(lod_x, EPS);
-    lod_x = std::min(lod_x, MIPMAP - (1.f + EPS));
+    lod_x = std::min(lod_x, mipmap::MIPMAP_LEVEL - (1.f + EPS));
     lod_y = std::max(lod_y, EPS);
-    lod_y = std::min(lod_y, MIPMAP - (1.f + EPS));
+    lod_y = std::min(lod_y, mipmap::MIPMAP_LEVEL - (1.f + EPS));
 
     int xl = std::floor(lod_x);
     int xr = xl + 1;
@@ -87,10 +93,6 @@ T Mipmap<T>::sample(const vec2 &uv, const vec2 &duv) const {
                          wx * texture[yl][xr]->sample(uv)) +
            wy * ((1.f - wx) * texture[yr][xl]->sample(uv) +
                  wx * texture[yr][xr]->sample(uv));
-}
-
-namespace mipmap {
-const float LOD_SAMPLE_DELTA = 0.1;
 }
 
 #endif

@@ -8,7 +8,10 @@
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 
-Config::Config(const std::string &filename) : filename(filename) {}
+Config::Config(const std::string &filename) {
+    std::cout << "Load scene from config: " << filename << std::endl;
+    yaml_config = YAML::LoadFile(filename);
+}
 
 Eigen::VectorXf Config::to_vector(const YAML::Node &yaml_array) {
     Eigen::VectorXf vector(yaml_array.size());
@@ -19,10 +22,6 @@ Eigen::VectorXf Config::to_vector(const YAML::Node &yaml_array) {
 }
 
 bool Config::load_scene(Scene *scene) const {
-    std::cout << "Load scene from config: " << filename << std::endl;
-
-    auto yaml_config = YAML::LoadFile(filename);
-
     // objects
     for (auto yaml_object : yaml_config["objects"]) {
         auto base_path =
@@ -88,6 +87,24 @@ bool Config::load_scene(Scene *scene) const {
                yaml_camera["near_plane"].as<float>(),
                yaml_camera["far_plane"].as<float>(),
                yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>());
+
+    return true;
+}
+
+bool Config::load_threads_num(int *threads_num) const {
+    if (!yaml_config["threads_num"]) {
+        std::cout << "[Warning] threads_num is not found in config."
+                  << std::endl;
+        return false;
+    }
+
+    *threads_num = yaml_config["threads_num"].as<int>();
+
+    if (*threads_num < 1) {
+        std::cout << "[Warning] threads_num cannot be less than 1."
+                  << std::endl;
+        return false;
+    }
 
     return true;
 }

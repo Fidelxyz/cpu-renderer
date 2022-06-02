@@ -25,6 +25,9 @@ class Texture {
     Texture(Texture &&src);
     ~Texture();
 
+    T *begin() const;
+    T *end() const;
+
     Texture<T> &operator=(Texture<T> &&src);
 
     inline T &at(const size_t x, const size_t y) const;
@@ -79,6 +82,16 @@ Texture<T>::~Texture() {
 }
 
 template <typename T>
+T *Texture<T>::begin() const {
+    return data;
+}
+
+template <typename T>
+T *Texture<T>::end() const {
+    return data + width * height;
+}
+
+template <typename T>
 Texture<T> &Texture<T>::operator=(Texture &&src) {
     width = std::move(src.width);
     height = std::move(src.height);
@@ -128,7 +141,7 @@ void Texture<T>::read_img(const std::string &filename, const bool linear) {
         data = new T[width * height];
     }
 
-    // write data
+#pragma omp parallel for
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
             if constexpr (std::is_same<T, float>::value) {  // float
@@ -157,6 +170,7 @@ void Texture<T>::write_img(const std::string &filename,
         img = cv::Mat(height, width, CV_8UC3);
     }
 
+#pragma omp parallel for
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
             T t = truncate_color(at(x, y));

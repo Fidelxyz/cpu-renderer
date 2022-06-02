@@ -11,7 +11,7 @@ namespace msaa {
 
 static const size_t MSAA_LEVEL = 4;
 
-static Texture<vec3> msaa_filter(
+__attribute_used__ static Texture<vec3> msaa_filter(
     const Texture<std::array<vec3, MSAA_LEVEL>> &src) {
     Texture<vec3> res(src.width, src.height, vec3(0, 0, 0));
     for (size_t i = 0; i < src.width * src.height; i++) {

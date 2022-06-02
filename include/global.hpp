@@ -21,6 +21,4 @@ using ivec4 = Eigen::Vector4i;
 
 const float EPS = 1e-4;
 
-#define MIPMAP 4
-
 #endif

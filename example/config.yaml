@@ -42,3 +42,4 @@ camera:
   far_plane: 300.0
   width: 1920
   height: 1080
+threads_num: 8
