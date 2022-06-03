@@ -127,8 +127,8 @@ bool Object::load_model(const std::string& filename,
 
     std::cout << "Vertices count: " << t_attrib.vertices.size() / 3
               << std::endl;
-    std::cout << "Shapes count: " << shapes.size() << std::endl;
-    std::cout << "Materials cout: " << materials.size() << std::endl;
+    std::cout << "Shapes count: " << t_shapes.size() << std::endl;
+    std::cout << "Materials cout: " << t_materials.size() << std::endl;
 
     vertices.reserve(t_attrib.vertices.size() / 3);
     for (size_t i = 0; i < t_attrib.vertices.size(); i += 3) {
