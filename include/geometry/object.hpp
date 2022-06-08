@@ -2,7 +2,6 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <Eigen/Core>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -12,11 +11,12 @@
 #include "geometry/shape.hpp"
 #include "global.hpp"
 #include "scene/material.hpp"
+#include "utils/transform.hpp"
 
 class Object {
    public:
-    mat4 model_transform_matrix;
-    mat3 normal_transform_matrix;
+    Transform4 model_transform;
+    Transform3 normal_transform;
 
     std::vector<std::shared_ptr<Vertex>> vertices;
     std::vector<std::shared_ptr<vec3>> normals;
@@ -35,7 +35,7 @@ class Object {
 
     Object(const vec3 &pos, const vec3 &rotation, const vec3 &scale);
     bool load_model(const std::string &filename, const std::string &basepath);
-    void model_transform();
+    void do_model_transform();
 
     template <typename T>
     std::shared_ptr<Texture<T>> load_texture(

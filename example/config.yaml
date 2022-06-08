@@ -26,6 +26,7 @@ objects:
     pos: [0, -0.08, -0.1]
     rotation: [0, 150, 0]
     scale: [0.1, 0.1, 0.1]
+
 lights:
   - pos: [1.0, 1.0, -1.0]
     color: [0.5, 0.5, 1.0]
@@ -33,6 +34,7 @@ lights:
   - pos: [-1.5, 1.0, 0]
     color: [1, 0.5, 0.5]
     intensity: 5
+  
 camera:
   pos: [0, 0, -0.3]
   look_dir: [0.0, 0.0, 1.0]
@@ -42,4 +44,5 @@ camera:
   far_plane: 300.0
   width: 1920
   height: 1080
+
 threads_num: 8

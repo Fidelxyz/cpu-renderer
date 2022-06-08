@@ -14,94 +14,29 @@
 #undef TINYOBJLOADER_IMPLEMENTATION
 
 Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
-    vec3 rotation_arc = rotation * M_PI / 180.f;
-    float sin_x = std::sin(rotation_arc.x());
-    float sin_y = std::sin(rotation_arc.y());
-    float sin_z = std::sin(rotation_arc.z());
-    float cos_x = std::cos(rotation_arc.x());
-    float cos_y = std::cos(rotation_arc.y());
-    float cos_z = std::cos(rotation_arc.z());
-
     // Model transform
 
-    mat4 model_translation;
-    // clang-format off
-    model_translation << 1, 0, 0, pos.x(),
-                         0, 1, 0, pos.y(),
-                         0, 0, 1, pos.z(),
-                         0, 0, 0, 1;
-    // clang-format on
-
-    mat4 model_rotation_x, model_rotation_y, model_rotation_z;
-    // clang-format off
-    model_rotation_x << 1, 0,     0,      0,
-                        0, cos_x, -sin_x, 0,
-                        0, sin_x, cos_x,  0,
-                        0, 0,     0,      1;
-
-    model_rotation_y << cos_y,  0, sin_y, 0,
-                        0,      1, 0,     0,
-                        -sin_y, 0, cos_y, 0,
-                        0,      0, 0,     1;
-
-    model_rotation_z << cos_z, -sin_z, 0, 0,
-                        sin_z, cos_z,  0, 0,
-                        0,     0,      1, 0,
-                        0,     0,      0, 1;
-    // clang-format on
-    mat4 model_rotation =
-        model_rotation_z * model_rotation_y * model_rotation_x;
-
-    mat4 model_scale;
-    // clang-format off
-    model_scale << scale.x(), 0, 0, 0,
-                   0, scale.y(), 0, 0,
-                   0, 0, scale.z(), 0,
-                   0, 0, 0, 1;
-    // clang-format on
-
-    model_transform_matrix = model_translation * model_rotation * model_scale;
+    model_transform.scale(scale);
+    model_transform.rotation(rotation);
+    model_transform.translation(pos);
 
     // Normal transform
 
-    mat3 normal_rotation_x, normal_rotation_y, normal_rotation_z;
-    // clang-format off
-    normal_rotation_x << 1, 0,     0,      
-                         0, cos_x, -sin_x,
-                         0, sin_x, cos_x;
-
-    normal_rotation_y << cos_y,  0, sin_y,
-                         0,      1, 0,    
-                         -sin_y, 0, cos_y;
-
-    normal_rotation_z << cos_z, -sin_z, 0,
-                         sin_z, cos_z,  0,
-                         0,     0,      1;
-    // clang-format on
-    mat3 normal_rotation =
-        normal_rotation_z * normal_rotation_y * normal_rotation_x;
-
-    mat3 normal_scale;
-    // clang-format off
-    normal_scale << scale.x(), 0, 0,
-                    0, scale.y(), 0,
-                    0, 0, scale.z();
-    // clang-format on
-
-    normal_transform_matrix = normal_rotation * normal_scale;
+    normal_transform.rotation(rotation);
+    normal_transform.scale(scale);
 }
 
-void Object::model_transform() {
+void Object::do_model_transform() {
     // pos
     for (auto& vertex : vertices) {
-        vec4 pos = model_transform_matrix *
-                   vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1);
-        vertex->pos = vec3(pos.x(), pos.y(), pos.z());
+        vec4 pos = model_transform.transform(
+            vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
+        vertex->pos = vec3(pos.x(), pos.y(), pos.z()) / pos.w();
     }
 
     // normal
     for (auto& normal : normals) {
-        *normal = (normal_transform_matrix * *normal).normalized();
+        *normal = (normal_transform.transform(*normal)).normalized();
     }
 }
 

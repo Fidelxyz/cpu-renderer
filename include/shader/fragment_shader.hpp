@@ -6,7 +6,7 @@
 
 #include "global.hpp"
 #include "scene/camera.hpp"
-#include "scene/light.hpp"
+#include "light/light.hpp"
 #include "scene/material.hpp"
 
 class FragmentShader {

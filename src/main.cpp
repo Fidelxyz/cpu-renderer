@@ -8,8 +8,8 @@
 #include "effects/msaa.hpp"
 #include "geometry/object.hpp"
 #include "global.hpp"
+#include "light/light.hpp"
 #include "scene/camera.hpp"
-#include "scene/light.hpp"
 #include "scene/scene.hpp"
 #include "shader/fragment_shader.hpp"
 #include "shader/vertex_shader.hpp"
@@ -23,7 +23,7 @@ void render(Scene &scene) {
     {
         Timer timer("Vertex shader");
         for (auto &object : scene.objects) {
-            object.model_transform();
+            object.do_model_transform();
 #pragma omp parallel for
             for (auto &vertex : object.vertices) {
                 vertex_shader.shade(vertex.get());

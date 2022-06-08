@@ -6,7 +6,7 @@
 
 #include "geometry/object.hpp"
 #include "scene/camera.hpp"
-#include "scene/light.hpp"
+#include "light/light.hpp"
 
 class Scene {
    public:
