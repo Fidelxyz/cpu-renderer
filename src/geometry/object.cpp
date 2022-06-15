@@ -13,6 +13,8 @@
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 
+Object::Object() {}
+
 Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
     // Model transform
 
@@ -27,11 +29,13 @@ Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
 }
 
 void Object::do_model_transform() {
-    // pos
+    // vertex
     for (auto& vertex : vertices) {
         vec4 pos = model_transform.transform(
             vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
         vertex->pos = vec3(pos.x(), pos.y(), pos.z()) / pos.w();
+        vertex->normal =
+            normal_transform.transform(vertex->normal).normalized();
     }
 
     // normal
@@ -165,8 +169,11 @@ bool Object::load_model(const std::string& filename,
             for (size_t v = 0; v < fnum; v++) {
                 tinyobj::index_t idx = t_shape.mesh.indices[index_offset + v];
                 triangle.vertices.emplace_back(vertices[idx.vertex_index]);
-                if (idx.normal_index != -1)
+                if (idx.normal_index != -1) {
                     triangle.normals.emplace_back(normals[idx.normal_index]);
+                    vertices[idx.vertex_index]->normal +=
+                        *normals[idx.normal_index];
+                }
                 if (idx.texcoord_index != -1)
                     triangle.texcoords.emplace_back(
                         texcoords[idx.texcoord_index]);
@@ -185,6 +192,10 @@ bool Object::load_model(const std::string& filename,
         }
 
         shapes.emplace_back(std::move(shape));
+    }
+
+    for (auto& vertex : vertices) {
+        vertex->normal = vertex->normal.normalized();
     }
 
     std::cout << "Faces count: " << faces_count << std::endl;

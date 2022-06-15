@@ -3,43 +3,48 @@
 #define TRANSFORM_H
 
 #include "global.hpp"
+#include "scene/camera.hpp"
 
-class Transform3 {
+class NormalTransform {
    private:
     mat3 matrix;
 
    public:
-    Transform3();
+    NormalTransform();
 
     template <typename T>
-    T transform(const T &pos);
+    T transform(const T &pos) const;
 
     void rotation(const vec3 &angle_deg);
     void scale(const vec3 &factor);
 };
 
-class Transform4 {
+class PositionTransform {
    private:
     mat4 matrix;
 
    public:
-    Transform4();
+    PositionTransform();
 
     template <typename T>
-    T transform(const T &pos);
+    T transform(const T &pos) const;
 
     void translation(const vec3 &dist);
     void rotation(const vec3 &angle_deg);
     void scale(const vec3 &factor);
+
+    void world_to_view(const Camera &camera);
+    void view_to_projection(const Camera &camera);
+    void projection_to_screen(const Camera &camera);
 };
 
 template <typename T>
-T Transform3::transform(const T &pos) {
+T NormalTransform::transform(const T &pos) const {
     return matrix * pos;
 }
 
 template <typename T>
-T Transform4::transform(const T &pos) {
+T PositionTransform::transform(const T &pos) const {
     return matrix * pos;
 }
 

@@ -123,11 +123,11 @@ inline bool Texture<T>::is_null() const {
 template <typename T>
 void Texture<T>::read_img(const std::string &filename, const bool linear) {
     // only support Gray and RGB image
-    static_assert(std::is_same<T, float>::value ||
-                  std::is_same<T, vec3>::value);
+    static_assert(std::is_same_v<T, float> ||
+                  std::is_same_v<T, vec3>);
 
     cv::Mat img;
-    if constexpr (std::is_same<T, float>::value) {  // float
+    if constexpr (std::is_same_v<T, float>) {  // float
         img = cv::imread(filename, cv::IMREAD_GRAYSCALE);
     } else {  // vec3
         img = cv::imread(filename, cv::IMREAD_COLOR);
@@ -144,7 +144,7 @@ void Texture<T>::read_img(const std::string &filename, const bool linear) {
 #pragma omp parallel for
     for (size_t y = 0; y < height; y++) {
         for (size_t x = 0; x < width; x++) {
-            if constexpr (std::is_same<T, float>::value) {  // float
+            if constexpr (std::is_same_v<T, float>) {  // float
                 at(x, y) = img.at<uchar>(y, x) / 255.f;
             } else {  // vec3
                 at(x, y)[0] = img.at<cv::Vec3b>(y, x)[2] / 255.f;
@@ -160,11 +160,11 @@ template <typename T>
 void Texture<T>::write_img(const std::string &filename,
                            const bool linear) const {
     // only support Gray and RGB image
-    static_assert(std::is_same<T, float>::value ||
-                  std::is_same<T, vec3>::value);
+    static_assert(std::is_same_v<T, float> ||
+                  std::is_same_v<T, vec3>);
 
     cv::Mat img;
-    if constexpr (std::is_same<T, float>::value) {  // float
+    if constexpr (std::is_same_v<T, float>) {  // float
         img = cv::Mat(height, width, CV_8UC1);
     } else {  // vec3
         img = cv::Mat(height, width, CV_8UC3);
@@ -175,7 +175,7 @@ void Texture<T>::write_img(const std::string &filename,
         for (size_t x = 0; x < width; x++) {
             T t = truncate_color(at(x, y));
             if (!linear) t = gamma_correction(t, 1.f / 2.2f);
-            if constexpr (std::is_same<T, float>::value) {  // float
+            if constexpr (std::is_same_v<T, float>) {  // float
                 img.at<uchar>(y, x) = t * 255.f;
             } else {  // vec3
                 img.at<cv::Vec3b>(y, x)[2] = t[0] * 255.f;

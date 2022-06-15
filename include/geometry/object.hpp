@@ -15,8 +15,8 @@
 
 class Object {
    public:
-    Transform4 model_transform;
-    Transform3 normal_transform;
+    PositionTransform model_transform;
+    NormalTransform normal_transform;
 
     std::vector<std::shared_ptr<Vertex>> vertices;
     std::vector<std::shared_ptr<vec3>> normals;
@@ -33,6 +33,7 @@ class Object {
 
     std::vector<Shape> shapes;
 
+    Object();
     Object(const vec3 &pos, const vec3 &rotation, const vec3 &scale);
     bool load_model(const std::string &filename, const std::string &basepath);
     void do_model_transform();
@@ -49,11 +50,10 @@ class Object {
 template <typename T>
 std::shared_ptr<Texture<T>> Object::load_texture(
     const std::string &texname, const std::filesystem::path &base_path) {
-    static_assert(std::is_same<T, float>::value ||
-                  std::is_same<T, vec3>::value);
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     std::unordered_map<std::string, std::shared_ptr<Texture<T>>> *texture_map;
-    if constexpr (std::is_same<T, float>::value) {  // float
+    if constexpr (std::is_same_v<T, float>) {  // float
         texture_map = &texture1_map;
     } else {  // vec3
         texture_map = &texture3_map;
@@ -75,11 +75,10 @@ std::shared_ptr<Texture<T>> Object::load_texture(
 template <typename T>
 std::shared_ptr<Mipmap<T>> Object::load_mipmap(
     const std::string &texname, const std::filesystem::path &base_path) {
-    static_assert(std::is_same<T, float>::value ||
-                  std::is_same<T, vec3>::value);
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     std::unordered_map<std::string, std::shared_ptr<Mipmap<T>>> *mipmap_map;
-    if constexpr (std::is_same<T, float>::value) {  // float
+    if constexpr (std::is_same_v<T, float>) {  // float
         mipmap_map = &mipmap1_map;
     } else {  // vec3
         mipmap_map = &mipmap3_map;

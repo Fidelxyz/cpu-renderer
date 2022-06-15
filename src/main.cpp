@@ -2,10 +2,12 @@
 
 #include <array>
 #include <chrono>
+#include <functional>
 #include <memory>
 
 #include "config.hpp"
 #include "effects/msaa.hpp"
+#include "effects/outline.hpp"
 #include "geometry/object.hpp"
 #include "global.hpp"
 #include "light/light.hpp"
@@ -15,6 +17,7 @@
 #include "shader/vertex_shader.hpp"
 #include "texture/texture.hpp"
 #include "utils/timer.hpp"
+#include "utils/transform.hpp"
 
 void render(Scene &scene) {
     auto vertex_shader = VertexShader(scene.camera);
@@ -36,7 +39,7 @@ void render(Scene &scene) {
 
     Texture<std::array<vec3, msaa::MSAA_LEVEL>> frame_buffer(
         scene.camera.width, scene.camera.height,
-        msaa::texture_init_val(vec3(0, 0, 0)));
+        msaa::texture_init_val(vec3(0.5, 0.5, 0.5)));
 
     // init mutex
     Texture<omp_lock_t> mutex(scene.camera.width, scene.camera.height);
@@ -51,7 +54,32 @@ void render(Scene &scene) {
 #pragma omp parallel for
                 for (auto &triangle : shape.triangles) {
                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
-                                       &fragment_shader, scene.camera);
+                                       &fragment_shader, scene.camera,
+                                       Triangle::CULL_BACK);
+                }
+            }
+        }
+    }
+
+    {
+        Timer timer("Outline pass");
+        auto outline_vertex_shader = outline::OutlineVertexShader(scene.camera);
+        auto outline_fragment_shader =
+            outline::OutlineFragmentShader(scene.camera);
+
+        for (auto &object : scene.objects) {
+#pragma omp parallel for
+            for (auto &vertex : object.vertices) {
+                outline_vertex_shader.shade(vertex.get());
+                vertex_shader.shade(vertex.get());
+            }
+
+            for (auto &shape : object.shapes) {
+#pragma omp parallel for
+                for (auto &triangle : shape.triangles) {
+                    triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
+                                       &outline_fragment_shader, scene.camera,
+                                       Triangle::CULL_FRONT);
                 }
             }
         }

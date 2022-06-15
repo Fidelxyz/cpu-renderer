@@ -42,7 +42,7 @@ camera:
   fov: 45.0
   near_plane: 0.01
   far_plane: 300.0
-  width: 1920
-  height: 1080
+  width: 2000
+  height: 2000
 
 threads_num: 8
