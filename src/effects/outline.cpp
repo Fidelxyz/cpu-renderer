@@ -9,7 +9,8 @@
 #include "light/light.hpp"
 #include "utils/transform.hpp"
 
-// Object outline::outline_geometry(const Object &object, const Camera &camera) {
+// Object outline::outline_geometry(const Object &object, const Camera &camera)
+// {
 //     auto t_object = Object();
 //     t_object.vertices.reserve(object.vertices.size());
 //     t_object.normals.reserve(object.normals.size());
@@ -47,9 +48,8 @@ outline::OutlineVertexShader::OutlineVertexShader(const Camera &camera) {
 
 void outline::OutlineVertexShader::shade(Vertex *vertex) {
     vec3 view_vec = vertex->pos - camera_pos;
-    vertex->pos +=
-        vertex->normal * OUTLINE_WIDTH * std::tanh(view_vec.norm()) +
-        view_vec.normalized() * EPS * 50.f;
+    vertex->pos += vertex->normal * OUTLINE_WIDTH * std::tanh(view_vec.norm()) +
+                   view_vec.normalized() * EPS * 50.f;
 }
 
 vec3 outline::OutlineFragmentShader::shade(const vec3 &pos, const vec3 &normal,

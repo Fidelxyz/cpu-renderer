@@ -177,3 +177,17 @@ void PositionTransform::projection_to_screen(const Camera &camera) {
 
     matrix = screen_transform * matrix;
 }
+
+/*
+z = z * (n + f) - n * f
+z = z - (n + f) / 2
+z = z * 2 / (f - n)
+z = z * 0.5 + 0.5
+
+w = z
+
+z' = ((z * (n + f) - n * f - (n + f) / 2) * 2 / (f - n) / 2 + 0.5) / z
+z' = (n + f) / (f - n) - (n * f + n) / (f - n) / z
+z = (n * f + n) / (n + f + (n - f) * z')
+
+*/

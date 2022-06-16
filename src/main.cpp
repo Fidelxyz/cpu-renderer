@@ -8,6 +8,7 @@
 #include "config.hpp"
 #include "effects/msaa.hpp"
 #include "effects/outline.hpp"
+#include "effects/rimlight.hpp"
 #include "geometry/object.hpp"
 #include "global.hpp"
 #include "light/light.hpp"
@@ -17,7 +18,6 @@
 #include "shader/vertex_shader.hpp"
 #include "texture/texture.hpp"
 #include "utils/timer.hpp"
-#include "utils/transform.hpp"
 
 void render(Scene &scene) {
     auto vertex_shader = VertexShader(scene.camera);
@@ -85,8 +85,21 @@ void render(Scene &scene) {
         }
     }
 
-    Texture<vec3> frame_result = msaa::msaa_filter(frame_buffer);
+    {
+        Timer timer("Rimlight");
+        rimlight::rimlight(&frame_buffer, z_buffer, scene.camera);
+    }
+
+    Texture<vec3> frame_result;
+    // Texture<float> frame_result;
+    {
+        Timer timer("MSAA Filter");
+        frame_result = msaa::msaa_filter(frame_buffer);
+        // frame_result = msaa::msaa_filter(z_buffer);
+    }
+
     frame_result.write_img("out.png", false);
+    // frame_result.write_img("out.png", true);
 
     // destroy mutex
     for (auto &m : mutex) {

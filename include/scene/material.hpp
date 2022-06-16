@@ -3,13 +3,16 @@
 #define MATERIAL_H
 
 #include <memory>
+#include <string>
 
-#include "texture/mipmap.hpp"
 #include "global.hpp"
+#include "texture/mipmap.hpp"
 #include "texture/texture.hpp"
 
 class Material {
    public:
+    std::string name;
+
     vec3 ambient = vec3(0, 0, 0);
     vec3 diffuse = vec3(0, 0, 0);
     vec3 specular = vec3(0, 0, 0);

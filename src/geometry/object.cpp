@@ -92,6 +92,8 @@ bool Object::load_model(const std::string& filename,
     for (auto& t_material : t_materials) {
         auto material = std::make_shared<Material>();
 
+        material->name = t_material.name;
+
         material->ambient = vec3(t_material.ambient[0], t_material.ambient[1],
                                  t_material.ambient[2]);
         material->diffuse = vec3(t_material.diffuse[0], t_material.diffuse[1],

@@ -23,6 +23,18 @@ __attribute_used__ static Texture<vec3> msaa_filter(
     return res;
 }
 
+__attribute_used__ static Texture<float> msaa_filter(
+    const Texture<std::array<float, MSAA_LEVEL>> &src) {
+    Texture<float> res(src.width, src.height, 0);
+    for (size_t i = 0; i < src.width * src.height; i++) {
+        for (size_t j = 0; j < MSAA_LEVEL; j++) {
+            res[i] += src[i][j];
+        }
+        res[i] /= MSAA_LEVEL;
+    }
+    return res;
+}
+
 template <typename T>
 static std::array<T, MSAA_LEVEL> texture_init_val(const T &val) {
     std::array<T, msaa::MSAA_LEVEL> ret;
