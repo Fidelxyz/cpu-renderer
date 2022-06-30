@@ -26,6 +26,7 @@ class Material {
     std::shared_ptr<Mipmap<vec3>> ambient_texture;
     std::shared_ptr<Mipmap<vec3>> diffuse_texture;
     std::shared_ptr<Mipmap<vec3>> specular_texture;
+    std::shared_ptr<Mipmap<float>> alpha_texture;
 
     // std::string ambient_texname;
     // std::string diffuse_texname;
@@ -38,12 +39,12 @@ class Material {
 
     // PBR
 
-    // float roughness = 0;
-    // float metallic = 0;
-    // float sheen = 0;
-    // float clearcoat_thickness = 0;
-    // float anisotropy = 0;
-    // float anisotropy_rotation = 0;
+    float roughness = 0;
+    float metallic = 0;
+    float sheen = 0;
+    float clearcoat_thickness = 0;
+    float anisotropy = 0;
+    float anisotropy_rotation = 0;
 
     // std::string emissive_texname;
     // std::string roughness_texname;

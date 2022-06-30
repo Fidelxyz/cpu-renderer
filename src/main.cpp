@@ -50,7 +50,10 @@ void render(Scene &scene) {
     {
         Timer timer("Trianglar rasterize");
         for (auto &object : scene.objects) {
+            int shape_counter = 0;
             for (auto &shape : object.shapes) {
+                shape_counter++;
+                printf("%d/%lu\n", shape_counter, object.shapes.size());
 #pragma omp parallel for
                 for (auto &triangle : shape.triangles) {
                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
@@ -61,29 +64,32 @@ void render(Scene &scene) {
         }
     }
 
-    {
-        Timer timer("Outline pass");
-        auto outline_vertex_shader = outline::OutlineVertexShader(scene.camera);
-        auto outline_fragment_shader =
-            outline::OutlineFragmentShader(scene.camera);
+    //     {
+    //         Timer timer("Outline pass");
+    //         auto outline_vertex_shader =
+    //         outline::OutlineVertexShader(scene.camera); auto
+    //         outline_fragment_shader =
+    //             outline::OutlineFragmentShader(scene.camera);
 
-        for (auto &object : scene.objects) {
-#pragma omp parallel for
-            for (auto &vertex : object.vertices) {
-                outline_vertex_shader.shade(vertex.get());
-                vertex_shader.shade(vertex.get());
-            }
+    //         for (auto &object : scene.objects) {
+    // #pragma omp parallel for
+    //             for (auto &vertex : object.vertices) {
+    //                 outline_vertex_shader.shade(vertex.get());
+    //                 vertex_shader.shade(vertex.get());
+    //             }
 
-            for (auto &shape : object.shapes) {
-#pragma omp parallel for
-                for (auto &triangle : shape.triangles) {
-                    triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
-                                       &outline_fragment_shader, scene.camera,
-                                       Triangle::CULL_FRONT);
-                }
-            }
-        }
-    }
+    //             for (auto &shape : object.shapes) {
+    // #pragma omp parallel for
+    //                 for (auto &triangle : shape.triangles) {
+    //                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
+    //                                        &outline_fragment_shader,
+    //                                        scene.camera,
+    //                                        Triangle::CULL_FRONT,
+    //                                        scene.enable_pbr);
+    //                 }
+    //             }
+    //         }
+    //     }
 
     {
         Timer timer("Rimlight");
@@ -91,15 +97,15 @@ void render(Scene &scene) {
     }
 
     Texture<vec3> frame_result;
-    // Texture<float> frame_result;
     {
         Timer timer("MSAA Filter");
         frame_result = msaa::msaa_filter(frame_buffer);
-        // frame_result = msaa::msaa_filter(z_buffer);
     }
 
-    frame_result.write_img("out.png", false);
-    // frame_result.write_img("out.png", true);
+    {
+        Timer timer("Save image");
+        frame_result.write_img("out.png", false);
+    }
 
     // destroy mutex
     for (auto &m : mutex) {

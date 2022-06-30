@@ -21,8 +21,20 @@ objects:
   #     diffuse-texname: spot_texture.png
   #     # specular-texname: spot_texture.png
 
-  - path: ../example/models/keqing/keqing.obj
-    basepath: ../example/models/keqing/
+  # - path: ../example/models/keqing/keqing.obj
+  #   basepath: ../example/models/keqing/
+  #   pos: [0, -0.08, -0.1]
+  #   rotation: [0, 150, 0]
+  #   scale: [0.1, 0.1, 0.1]
+
+  # - path: ../example/models/aether/aether.obj
+  #   basepath: ../example/models/aether/
+  #   pos: [0, -0.08, -0.1]
+  #   rotation: [0, 150, 0]
+  #   scale: [0.1, 0.1, 0.1]
+
+  - path: ../example/models/Grand_Narukami_Shrine-pbr/Grand_Narukami_Shrine.obj
+    basepath: ../example/models/Grand_Narukami_Shrine-pbr/
     pos: [0, -0.08, -0.1]
     rotation: [0, 150, 0]
     scale: [0.1, 0.1, 0.1]
@@ -30,19 +42,30 @@ objects:
 lights:
   - pos: [1.0, 0.6, -0.5]
     color: [1.0, 1.0, 1.0]
-    intensity: 5
+    intensity: 10
   # - pos: [-1.5, 1.0, 0]
   #   color: [1, 0.5, 0.5]
   #   intensity: 5
   
+# camera:
+#   pos: [0, 0, -0.3]
+#   look_dir: [0.0, 0.0, 1.0]
+#   up_dir: [0.0, -1.0, 0.0]
+#   fov: 50.0
+#   near_plane: 0.01
+#   far_plane: 300.0
+#   width: 2000
+#   height: 2000
+
 camera:
-  pos: [0, 0, -0.3]
+  pos: [0, 1, -8]
   look_dir: [0.0, 0.0, 1.0]
   up_dir: [0.0, -1.0, 0.0]
-  fov: 45.0
+  fov: 80.0
   near_plane: 0.01
   far_plane: 300.0
-  width: 2000
-  height: 2000
+  width: 3840
+  height: 2160
 
 threads_num: 8
+enable_pbr: true

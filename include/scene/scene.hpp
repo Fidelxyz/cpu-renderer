@@ -14,6 +14,8 @@ class Scene {
     std::vector<Light> lights;
 
     Camera camera;
+
+    bool enable_pbr = false;
 };
 
 #endif

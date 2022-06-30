@@ -22,12 +22,24 @@ class Object {
     std::vector<std::shared_ptr<vec3>> normals;
     std::vector<std::shared_ptr<vec2>> texcoords;
 
+    //////////////////////////
+    /// Texture maps BEGIN ///
+    //////////////////////////
+
     std::unordered_map<std::string, std::shared_ptr<Texture<float>>>
         texture1_map;
     std::unordered_map<std::string, std::shared_ptr<Texture<vec3>>>
         texture3_map;
+    std::unordered_map<std::string, std::shared_ptr<Texture<float>>>
+        texture_alpha_map;
     std::unordered_map<std::string, std::shared_ptr<Mipmap<float>>> mipmap1_map;
     std::unordered_map<std::string, std::shared_ptr<Mipmap<vec3>>> mipmap3_map;
+    std::unordered_map<std::string, std::shared_ptr<Mipmap<float>>>
+        mipmap_alpha_map;
+
+    ////////////////////////
+    /// Texture maps END ///
+    ////////////////////////
 
     std::vector<std::shared_ptr<Material>> materials;
 
@@ -44,6 +56,12 @@ class Object {
 
     template <typename T>
     std::shared_ptr<Mipmap<T>> load_mipmap(
+        const std::string &texname, const std::filesystem::path &base_path);
+
+    std::shared_ptr<Texture<float>> load_texture_alpha(
+        const std::string &texname, const std::filesystem::path &base_path);
+
+    std::shared_ptr<Mipmap<float>> load_mipmap_alpha(
         const std::string &texname, const std::filesystem::path &base_path);
 };
 

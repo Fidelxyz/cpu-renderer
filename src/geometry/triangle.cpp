@@ -26,30 +26,114 @@ float Triangle::truncate_y_ss(float y, const Camera &camera) {
     return y;
 }
 
-bool Triangle::is_culled(const Camera &camera, CullMethod cull_method) const {
+bool Triangle::is_culled_normal(const Camera &camera,
+                                CullMethod cull_method) const {
+    if (normals.empty()) {
+        vec3 normal = this->normal();
+        switch (cull_method) {
+            case CULL_BACK: {
+                for (size_t i = 0; i < 3; i++) {
+                    if (normal.dot(
+                            (camera.pos - vertices[i]->pos).normalized()) >
+                        -EPS) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case CULL_FRONT: {
+                for (size_t i = 0; i < 3; i++) {
+                    if (normal.dot(
+                            (camera.pos - vertices[i]->pos).normalized()) <
+                        EPS) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case NO_CULL:
+                return false;
+        }
+    } else {
+        switch (cull_method) {
+            case CULL_BACK: {
+                for (size_t i = 0; i < 3; i++) {
+                    if (normals[i]->dot(
+                            (camera.pos - vertices[i]->pos).normalized()) >
+                        -EPS) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case CULL_FRONT: {
+                for (size_t i = 0; i < 3; i++) {
+                    if (normals[i]->dot(
+                            (camera.pos - vertices[i]->pos).normalized()) <
+                        EPS) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            case NO_CULL:
+                return false;
+        }
+    }
+    return false;
+}
+
+bool Triangle::is_culled_normal(const vec3 &normal, const vec3 &pos,
+                                const Camera &camera,
+                                CullMethod cull_method) const {
     switch (cull_method) {
-        case CULL_BACK: {
-            for (size_t i = 0; i < 3; i++) {
-                if (normals[i]->dot(
-                        (camera.pos - vertices[i]->pos).normalized()) > -EPS) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        case CULL_FRONT: {
-            for (size_t i = 0; i < 3; i++) {
-                if (normals[i]->dot(
-                        (camera.pos - vertices[i]->pos).normalized()) < EPS) {
-                    return false;
-                }
-            }
-            return true;
-        }
+        case CULL_BACK:
+            return normal.dot((camera.pos - pos).normalized()) < -EPS;
+        case CULL_FRONT:
+            return normal.dot((camera.pos - pos).normalized()) > EPS;
         case NO_CULL:
             return false;
     }
     return false;
+}
+
+bool Triangle::is_culled_view(const Camera &camera) const {
+    // cull boundary
+    const float L[] = {-EPS, -EPS, -EPS};
+    const float R[] = {static_cast<float>(camera.width) + EPS,
+                       static_cast<float>(camera.height) + EPS, 1.f + EPS};
+
+    // for each dimension
+    for (size_t i = 0; i < 3; i++) {
+        // culled if all vertices are outside the view (in the same side)
+
+        // test < 0
+        if (vertices[0]->screen_pos[i] < L[i] &&
+            vertices[1]->screen_pos[i] < L[i] &&
+            vertices[2]->screen_pos[i] < L[i]) {
+            // printf("vertices[0]->screen_pos[%lu] = %f\n", i,
+            //        vertices[0]->screen_pos[i]);
+            // printf("vertices[1]->screen_pos[%lu] = %f\n", i,
+            //        vertices[1]->screen_pos[i]);
+            // printf("vertices[2]->screen_pos[%lu] = %f\n", i,
+            //        vertices[2]->screen_pos[i]);
+            return true;
+        }
+
+        // test > 1
+        if (vertices[0]->screen_pos[i] > R[i] &&
+            vertices[1]->screen_pos[i] > R[i] &&
+            vertices[2]->screen_pos[i] > R[i]) {
+            // printf("vertices[0]->screen_pos[%lu] = %f\n", i,
+            //        vertices[0]->screen_pos[i]);
+            // printf("vertices[1]->screen_pos[%lu] = %f\n", i,
+            //        vertices[1]->screen_pos[i]);
+            // printf("vertices[2]->screen_pos[%lu] = %f\n", i,
+            //        vertices[2]->screen_pos[i]);
+            return true;
+        }
+    }
+    return true;
 }
 
 bool Triangle::is_inside_ss(const vec3 &w) const {
@@ -110,13 +194,16 @@ std::tuple<float, float, float> Triangle::corrected_barycoord(
 
 std::tuple<vec2, vec2> Triangle::calc_uv(
     const std::tuple<float, float, float> &w_shading,
-    const vec3 &barycoord_shading, const vec3 &barycoord_lod_sample_x_delta,
-    const vec3 &barycoord_lod_sample_y_delta) const {
+    const vec3 &barycoord_shading,
+    const std::tuple<vec3, vec3> &barycoord_lod_sample_delta) const {
     vec2 uv, duv;
     if (texcoords.empty()) {
         uv = vec2(0, 0);
         duv = vec2(1, 1);
     } else {
+        auto [barycoord_lod_sample_x_delta, barycoord_lod_sample_y_delta] =
+            barycoord_lod_sample_delta;
+
         auto texcoord_tuple =
             std::make_tuple(*texcoords[0], *texcoords[1], *texcoords[2]);
 

@@ -36,8 +36,13 @@ class Texture {
 
     inline bool is_null() const;
 
+    // re-allowcate space
+    void allowcate(const size_t width, const size_t height);
+
     void read_img(const std::string &filename, const bool linear);
     void write_img(const std::string &filename, const bool linear) const;
+
+    void read_alpha(const std::string &filename);
 
     static float gamma_correction(const float val, const float gamma);
     static vec3 gamma_correction(const vec3 &val, const float gamma);
@@ -121,10 +126,19 @@ inline bool Texture<T>::is_null() const {
 }
 
 template <typename T>
+void Texture<T>::allowcate(const size_t width, const size_t height) {
+    if (this->width != width || this->height != height) {
+        this->width = width;
+        this->height = height;
+        delete[] data;
+        data = new T[width * height];
+    }
+}
+
+template <typename T>
 void Texture<T>::read_img(const std::string &filename, const bool linear) {
     // only support Gray and RGB image
-    static_assert(std::is_same_v<T, float> ||
-                  std::is_same_v<T, vec3>);
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     cv::Mat img;
     if constexpr (std::is_same_v<T, float>) {  // float
@@ -132,14 +146,14 @@ void Texture<T>::read_img(const std::string &filename, const bool linear) {
     } else {  // vec3
         img = cv::imread(filename, cv::IMREAD_COLOR);
     }
-    // re-allowcate space
-    if (static_cast<int>(width) != img.rows ||
-        static_cast<int>(height) != img.cols) {
-        width = img.rows;
-        height = img.cols;
-        delete[] data;
-        data = new T[width * height];
+
+    if (img.rows == 0 || img.cols == 0) {
+        std::cerr << "Load image failed." << std::endl;
+        return;
     }
+
+    // re-allowcate space
+    allowcate(img.rows, img.cols);
 
 #pragma omp parallel for
     for (size_t y = 0; y < height; y++) {
@@ -160,8 +174,7 @@ template <typename T>
 void Texture<T>::write_img(const std::string &filename,
                            const bool linear) const {
     // only support Gray and RGB image
-    static_assert(std::is_same_v<T, float> ||
-                  std::is_same_v<T, vec3>);
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     cv::Mat img;
     if constexpr (std::is_same_v<T, float>) {  // float
@@ -185,6 +198,32 @@ void Texture<T>::write_img(const std::string &filename,
         }
     }
     cv::imwrite(filename, img);
+}
+
+template <typename T>
+void Texture<T>::read_alpha(const std::string &filename) {
+    static_assert(std::is_same_v<T, float>);
+
+    cv::Mat img = cv::imread(filename, cv::IMREAD_UNCHANGED);
+
+    if (img.channels() != 4) {
+        std::cerr << "Load alpha failed: no alpha channel." << std::endl;
+        return;
+    }
+
+    if (img.rows == 0 || img.cols == 0) {
+        std::cerr << "Load image failed." << std::endl;
+        return;
+    }
+
+    allowcate(img.rows, img.cols);
+
+#pragma omp parallel for
+    for (size_t y = 0; y < height; y++) {
+        for (size_t x = 0; x < width; x++) {
+            at(x, y) = img.at<cv::Vec4b>(y, x)[3] / 255.f;
+        }
+    }
 }
 
 template <typename T>

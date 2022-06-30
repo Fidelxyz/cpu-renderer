@@ -88,6 +88,11 @@ bool Config::load_scene(Scene *scene) const {
                yaml_camera["far_plane"].as<float>(),
                yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>());
 
+    // enable_pbr
+    if (yaml_config["enable_pbr"]) {
+        scene->enable_pbr = yaml_config["enable_pbr"].as<bool>();
+    }
+
     return true;
 }
 

@@ -48,12 +48,12 @@ outline::OutlineVertexShader::OutlineVertexShader(const Camera &camera) {
 
 void outline::OutlineVertexShader::shade(Vertex *vertex) {
     vec3 view_vec = vertex->pos - camera_pos;
-    vertex->pos += vertex->normal * OUTLINE_WIDTH * std::tanh(view_vec.norm()) +
-                   view_vec.normalized() * EPS * 50.f;
+    vertex->pos += vertex->normal * OUTLINE_WIDTH * std::tanh(view_vec.norm());
 }
 
 vec3 outline::OutlineFragmentShader::shade(const vec3 &pos, const vec3 &normal,
                                            const vec2 &uv, const vec2 &duv,
-                                           Material *material) {
+                                           Material *material,
+                                           const bool enable_pbr) {
     return OUTLINE_COLOR;
 }

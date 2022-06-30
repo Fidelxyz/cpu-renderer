@@ -164,6 +164,10 @@ void PositionTransform::view_to_projection(const Camera &camera) {
 }
 
 void PositionTransform::projection_to_screen(const Camera &camera) {
+    // x: [-1, 1] -> [0, width]
+    // y: [-1, 1] -> [0, height]
+    // z: [-1, 1] -> [0, 1]
+
     mat4 screen_transform;
     float screen_scale_x = static_cast<float>(camera.width) / 2.f;
     float screen_scale_y = static_cast<float>(camera.height) / 2.f;

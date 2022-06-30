@@ -9,7 +9,7 @@
 #include "shader/vertex_shader.hpp"
 
 namespace outline {
-const float OUTLINE_WIDTH = 0.002;
+const float OUTLINE_WIDTH = 0.001;
 const vec3 OUTLINE_COLOR = vec3(0, 0, 0);
 
 // Object outline_geometry(const Object &object, const Camera &camera);
@@ -26,7 +26,7 @@ class OutlineFragmentShader : public FragmentShader {
    public:
     using FragmentShader::FragmentShader;
     vec3 shade(const vec3 &pos, const vec3 &normal, const vec2 &uv,
-               const vec2 &duv, Material *material);
+               const vec2 &duv, Material *material, const bool enable_pbr);
 };
 }  // namespace outline
 

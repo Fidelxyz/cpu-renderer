@@ -125,6 +125,11 @@ bool Object::load_model(const std::string& filename,
             material->specular_texture =
                 load_mipmap<vec3>(t_material.specular_texname, basepath);
 
+        if (!t_material.alpha_texname.empty()) {
+            material->alpha_texture =
+                load_mipmap_alpha(t_material.alpha_texname, basepath);
+        }
+
         // material.specular_highlight_texname =
         //     t_material.specular_highlight_texname;
         // material.bump_texname = t_material.bump_texname;
@@ -203,4 +208,35 @@ bool Object::load_model(const std::string& filename,
     std::cout << "Faces count: " << faces_count << std::endl;
 
     return true;
+}
+
+std::shared_ptr<Texture<float>> Object::load_texture_alpha(
+    const std::string& texname, const std::filesystem::path& base_path) {
+    std::shared_ptr<Texture<float>> tex_ptr = nullptr;
+
+    if (texture_alpha_map.find(texname) !=
+        texture_alpha_map.end()) {  // loaded texture found
+        tex_ptr = texture_alpha_map.at(texname);
+    } else {  // not found
+        std::cout << "Load texture: " << texname << std::endl;
+        tex_ptr = std::make_shared<Texture<float>>();
+        texture_alpha_map.emplace(texname, tex_ptr);
+        tex_ptr->read_alpha(base_path / texname);
+    }
+    return tex_ptr;
+}
+
+std::shared_ptr<Mipmap<float>> Object::load_mipmap_alpha(
+    const std::string& texname, const std::filesystem::path& base_path) {
+    std::shared_ptr<Mipmap<float>> mipmap_ptr = nullptr;
+
+    if (mipmap_alpha_map.find(texname) !=
+        mipmap_alpha_map.end()) {  // loaded mipmap found
+        mipmap_ptr = mipmap_alpha_map.at(texname);
+    } else {  // not found
+        std::shared_ptr<Texture<float>> texture =
+            load_texture_alpha(texname, base_path);
+        mipmap_ptr = std::make_shared<Mipmap<float>>(texture);
+    }
+    return mipmap_ptr;
 }
