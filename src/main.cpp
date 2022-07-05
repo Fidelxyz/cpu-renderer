@@ -17,6 +17,7 @@
 #include "shader/fragment_shader.hpp"
 #include "shader/vertex_shader.hpp"
 #include "texture/texture.hpp"
+#include "utils/progress_bar.hpp"
 #include "utils/timer.hpp"
 
 void render(Scene &scene) {
@@ -50,16 +51,15 @@ void render(Scene &scene) {
     {
         Timer timer("Trianglar rasterize");
         for (auto &object : scene.objects) {
-            int shape_counter = 0;
+            ProgressBar progress("Rendering shapes", object.shapes.size());
             for (auto &shape : object.shapes) {
-                shape_counter++;
-                printf("%d/%lu\n", shape_counter, object.shapes.size());
 #pragma omp parallel for
                 for (auto &triangle : shape.triangles) {
                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
                                        &fragment_shader, scene.camera,
                                        Triangle::CULL_BACK);
                 }
+                progress.update();
             }
         }
     }

@@ -58,14 +58,14 @@ lights:
 #   height: 2000
 
 camera:
-  pos: [0, 1, -8]
+  pos: [0, 1, -5]
   look_dir: [0.0, 0.0, 1.0]
   up_dir: [0.0, -1.0, 0.0]
   fov: 80.0
   near_plane: 0.01
   far_plane: 300.0
-  width: 3840
-  height: 2160
+  width: 1920
+  height: 1080
 
 threads_num: 8
 enable_pbr: true

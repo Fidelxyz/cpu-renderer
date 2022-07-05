@@ -218,7 +218,7 @@ std::shared_ptr<Texture<float>> Object::load_texture_alpha(
         texture_alpha_map.end()) {  // loaded texture found
         tex_ptr = texture_alpha_map.at(texname);
     } else {  // not found
-        std::cout << "Load texture: " << texname << std::endl;
+        std::cout << "Load alpha: " << texname << std::endl;
         tex_ptr = std::make_shared<Texture<float>>();
         texture_alpha_map.emplace(texname, tex_ptr);
         tex_ptr->read_alpha(base_path / texname);

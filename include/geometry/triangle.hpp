@@ -94,7 +94,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
     static_assert(std::is_base_of_v<FragmentShader, FragmentShaderT>);
 
     if (is_culled_normal(camera, cull_method)) return;
-    // if (is_culled_view(camera)) return;
+    if (is_culled_view(camera)) return;
 
     auto v1 = vertices[0];
     auto v2 = vertices[1];
@@ -170,14 +170,17 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                 }
 
                 // alpha test
-                if (material->alpha_texture != nullptr) {
-                    auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
-                                             barycoord_lod_sample_delta);
-                    // std::cout << material->alpha_texture->sample(uv, duv)
-                    //           << std::endl;
-                    if (material->alpha_texture->sample(uv, duv) < EPS)
-                        continue;
-                }
+                // if (material->alpha_texture != nullptr) {
+                //     auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
+                //                              barycoord_lod_sample_delta);
+                //     printf("%f\n", material->alpha_texture->sample(uv, duv));
+                //     if (material->alpha_texture->sample(uv, duv) < EPS) {
+                //         // puts("!");
+                //         continue;
+                //     } else {
+                //         puts("!");
+                //     }
+                // }
 
                 float z = interpolate_z_ss(barycoord_samples[i]);
                 if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {

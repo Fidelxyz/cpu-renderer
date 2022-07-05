@@ -133,7 +133,7 @@ bool Triangle::is_culled_view(const Camera &camera) const {
             return true;
         }
     }
-    return true;
+    return false;
 }
 
 bool Triangle::is_inside_ss(const vec3 &w) const {
@@ -182,14 +182,25 @@ float Triangle::interpolate_z_ss(const vec3 &barycoord_ss) const {
 
 std::tuple<float, float, float> Triangle::corrected_barycoord(
     const vec3 &barycoord_ss) const {
-    float w1 = vertices[0]->w;
-    float w2 = vertices[1]->w;
-    float w3 = vertices[2]->w;
-    float c1 = barycoord_ss.x();
-    float c2 = barycoord_ss.y();
-    float c3 = barycoord_ss.z();
-    float w = c1 / w1 + c2 / w2 + c3 / w3;
-    return std::make_tuple(c1 / w1 / w, c2 / w2 / w, c3 / w3 / w);
+    double w1 = vertices[0]->w;
+    double w2 = vertices[1]->w;
+    double w3 = vertices[2]->w;
+    double alpha = barycoord_ss.x();
+    double beta = barycoord_ss.y();
+    double gamma = barycoord_ss.z();
+    double w = alpha / w1 + beta / w2 + gamma / w3;
+
+    // ! DEBUG
+    if (fabs(alpha / w1 / w) > 10000.f) {
+        printf("ss: %lf %lf %lf\n", alpha, beta, gamma);
+
+        printf("w: %lf l%f %lf %lf\n", w1, w2, w3, w);
+
+        printf("out: %lf %lf %lf\n\n", alpha / w1 / w, beta / w2 / w,
+               gamma / w3 / w);
+    }
+
+    return std::make_tuple(alpha / w1 / w, beta / w2 / w, gamma / w3 / w);
 }
 
 std::tuple<vec2, vec2> Triangle::calc_uv(
@@ -221,6 +232,19 @@ std::tuple<vec2, vec2> Triangle::calc_uv(
         float du = (std::fabs(ddx.x()) + std::fabs(ddy.x())) / 2.f;
         float dv = (std::fabs(ddx.y()) + std::fabs(ddy.y())) / 2.f;
         duv = vec2(du, dv);
+
+        // if (fabs(uv.x()) > 10000.f) {
+        //     auto [w1, w2, w3] = w_shading;
+
+        //     printf("%f %f %f %f %f %f\n", texcoords[0]->x(),
+        //     texcoords[0]->y(),
+        //            texcoords[1]->x(), texcoords[1]->y(), texcoords[2]->x(),
+        //            texcoords[2]->y());
+
+        //     printf("%f %f %f\n", w1, w2, w3);
+
+        //     printf("%f %f %f %f\n", uv.x(), uv.y(), duv.x(), duv.y());
+        // }
     }
     return std::make_tuple(uv, duv);
 }
