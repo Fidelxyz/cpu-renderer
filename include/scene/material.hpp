@@ -12,6 +12,7 @@
 class Material {
    public:
     std::string name;
+    std::string shading_type = "default";
 
     vec3 ambient = vec3(0, 0, 0);
     vec3 diffuse = vec3(0, 0, 0);
@@ -42,9 +43,13 @@ class Material {
     float roughness = 0;
     float metallic = 0;
     float sheen = 0;
-    float clearcoat_thickness = 0;
-    float anisotropy = 0;
-    float anisotropy_rotation = 0;
+    // float clearcoat_thickness = 0;
+    // float anisotropy = 0;
+    // float anisotropy_rotation = 0;
+
+    std::shared_ptr<Mipmap<float>> roughness_texture;
+    std::shared_ptr<Mipmap<float>> metallic_texture;
+    std::shared_ptr<Mipmap<vec3>> normal_texture;
 
     // std::string emissive_texname;
     // std::string roughness_texname;

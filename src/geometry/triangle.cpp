@@ -111,12 +111,6 @@ bool Triangle::is_culled_view(const Camera &camera) const {
         if (vertices[0]->screen_pos[i] < L[i] &&
             vertices[1]->screen_pos[i] < L[i] &&
             vertices[2]->screen_pos[i] < L[i]) {
-            // printf("vertices[0]->screen_pos[%lu] = %f\n", i,
-            //        vertices[0]->screen_pos[i]);
-            // printf("vertices[1]->screen_pos[%lu] = %f\n", i,
-            //        vertices[1]->screen_pos[i]);
-            // printf("vertices[2]->screen_pos[%lu] = %f\n", i,
-            //        vertices[2]->screen_pos[i]);
             return true;
         }
 
@@ -124,12 +118,6 @@ bool Triangle::is_culled_view(const Camera &camera) const {
         if (vertices[0]->screen_pos[i] > R[i] &&
             vertices[1]->screen_pos[i] > R[i] &&
             vertices[2]->screen_pos[i] > R[i]) {
-            // printf("vertices[0]->screen_pos[%lu] = %f\n", i,
-            //        vertices[0]->screen_pos[i]);
-            // printf("vertices[1]->screen_pos[%lu] = %f\n", i,
-            //        vertices[1]->screen_pos[i]);
-            // printf("vertices[2]->screen_pos[%lu] = %f\n", i,
-            //        vertices[2]->screen_pos[i]);
             return true;
         }
     }
@@ -182,25 +170,22 @@ float Triangle::interpolate_z_ss(const vec3 &barycoord_ss) const {
 
 std::tuple<float, float, float> Triangle::corrected_barycoord(
     const vec3 &barycoord_ss) const {
-    double w1 = vertices[0]->w;
-    double w2 = vertices[1]->w;
-    double w3 = vertices[2]->w;
-    double alpha = barycoord_ss.x();
-    double beta = barycoord_ss.y();
-    double gamma = barycoord_ss.z();
-    double w = alpha / w1 + beta / w2 + gamma / w3;
+    float w1 = vertices[0]->w;
+    float w2 = vertices[1]->w;
+    float w3 = vertices[2]->w;
 
-    // ! DEBUG
-    if (fabs(alpha / w1 / w) > 10000.f) {
-        printf("ss: %lf %lf %lf\n", alpha, beta, gamma);
+    // ? normalize
+    // float x = w1 + w2 + w3;
+    // w1 /= x;
+    // w2 /= x;
+    // w3 /= x;
 
-        printf("w: %lf l%f %lf %lf\n", w1, w2, w3, w);
+    float alpha = barycoord_ss.x();
+    float beta = barycoord_ss.y();
+    float gamma = barycoord_ss.z();
+    float l = alpha / w1 + beta / w2 + gamma / w3;
 
-        printf("out: %lf %lf %lf\n\n", alpha / w1 / w, beta / w2 / w,
-               gamma / w3 / w);
-    }
-
-    return std::make_tuple(alpha / w1 / w, beta / w2 / w, gamma / w3 / w);
+    return std::make_tuple(alpha / w1 / l, beta / w2 / l, gamma / w3 / l);
 }
 
 std::tuple<vec2, vec2> Triangle::calc_uv(
@@ -232,19 +217,6 @@ std::tuple<vec2, vec2> Triangle::calc_uv(
         float du = (std::fabs(ddx.x()) + std::fabs(ddy.x())) / 2.f;
         float dv = (std::fabs(ddx.y()) + std::fabs(ddy.y())) / 2.f;
         duv = vec2(du, dv);
-
-        // if (fabs(uv.x()) > 10000.f) {
-        //     auto [w1, w2, w3] = w_shading;
-
-        //     printf("%f %f %f %f %f %f\n", texcoords[0]->x(),
-        //     texcoords[0]->y(),
-        //            texcoords[1]->x(), texcoords[1]->y(), texcoords[2]->x(),
-        //            texcoords[2]->y());
-
-        //     printf("%f %f %f\n", w1, w2, w3);
-
-        //     printf("%f %f %f %f\n", uv.x(), uv.y(), duv.x(), duv.y());
-        // }
     }
     return std::make_tuple(uv, duv);
 }

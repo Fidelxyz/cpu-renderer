@@ -40,7 +40,7 @@ void render(Scene &scene) {
 
     Texture<std::array<vec3, msaa::MSAA_LEVEL>> frame_buffer(
         scene.camera.width, scene.camera.height,
-        msaa::texture_init_val(vec3(0.5, 0.5, 0.5)));
+        msaa::texture_init_val(scene.background_color));
 
     // init mutex
     Texture<omp_lock_t> mutex(scene.camera.width, scene.camera.height);
@@ -84,14 +84,13 @@ void render(Scene &scene) {
     //                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
     //                                        &outline_fragment_shader,
     //                                        scene.camera,
-    //                                        Triangle::CULL_FRONT,
-    //                                        scene.enable_pbr);
+    //                                        Triangle::CULL_FRONT);
     //                 }
     //             }
     //         }
     //     }
 
-    {
+    if (scene.enable_rimlight) {
         Timer timer("Rimlight");
         rimlight::rimlight(&frame_buffer, z_buffer, scene.camera);
     }

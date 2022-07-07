@@ -2,6 +2,8 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include <functional>
 #include <memory>
 #include <tuple>
@@ -24,6 +26,10 @@ class Triangle {
 
     enum CullMethod { NO_CULL, CULL_BACK, CULL_FRONT };
 
+   private:
+    vec3 tbn_u = vec3(0, 0, 0);
+
+   public:
     vec3 normal() const;
 
     // Return if the point is inside the triangle in the screen space.
@@ -32,8 +38,7 @@ class Triangle {
     template <typename FragmentShaderT>
     void rasterize(Texture<omp_lock_t> *mutex, frame_buffer_t *frame_buffer,
                    z_buffer_t *z_buffer, FragmentShaderT *fragment_shader,
-                   const Camera &camera, CullMethod = NO_CULL,
-                   const bool enable_pbr = false) const;
+                   const Camera &camera, CullMethod = NO_CULL);
 
    private:
     // Calculate the cross product of two 2-dimension vectors.
@@ -69,8 +74,7 @@ class Triangle {
     template <typename FragmentShaderT>
     vec3 shade(size_t pixel_x, size_t pixel_y,
                const std::tuple<float, float, float> &w, const vec2 &uv,
-               const vec2 &duv, FragmentShaderT *fragment_shader,
-               const bool enable_pbr) const;
+               const vec2 &duv, FragmentShaderT *fragment_shader) const;
 
     std::tuple<vec2, vec2> calc_uv(
         const std::tuple<float, float, float> &w_shading,
@@ -90,7 +94,7 @@ template <typename FragmentShaderT>
 void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                          frame_buffer_t *frame_buffer, z_buffer_t *z_buffer,
                          FragmentShaderT *fragment_shader, const Camera &camera,
-                         CullMethod cull_method, const bool enable_pbr) const {
+                         CullMethod cull_method) {
     static_assert(std::is_base_of_v<FragmentShader, FragmentShaderT>);
 
     if (is_culled_normal(camera, cull_method)) return;
@@ -99,6 +103,8 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
     auto v1 = vertices[0];
     auto v2 = vertices[1];
     auto v3 = vertices[2];
+
+    // screen coordinate range
     int min_x = truncate_x_ss(
         std::floor(std::min(
             {v1->screen_pos.x(), v2->screen_pos.x(), v3->screen_pos.x()})),
@@ -116,6 +122,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
             {v1->screen_pos.y(), v2->screen_pos.y(), v3->screen_pos.y()})),
         camera);
 
+    // barycentric coordinate
     vec3 barycoord_init = barycoord_ss(vec2(min_x + 0.5f, min_y + 0.5f));
     vec3 barycoord_dx =
         barycoord_ss(vec2(min_x + 1.5f, min_y + 0.5f)) - barycoord_init;
@@ -129,6 +136,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
             barycoord_init;
     }
 
+    // mipmap lod related barycentric coordinate
     vec3 barycoord_lod_sample_x_delta =
         barycoord_ss(
             vec2(min_x + 0.5f + mipmap::LOD_SAMPLE_DELTA, min_y + 0.5f)) -
@@ -139,6 +147,37 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
         barycoord_init;
     auto barycoord_lod_sample_delta = std::make_tuple(
         barycoord_lod_sample_x_delta, barycoord_lod_sample_y_delta);
+
+    // tangent space conversion
+    if (!texcoords.empty()) {
+        vec3 e1 = vertices[0]->pos - vertices[1]->pos;
+        vec3 e2 = vertices[0]->pos - vertices[2]->pos;
+
+        vec2 delta_uv1 = *texcoords[0] - *texcoords[1];
+        vec2 delta_uv2 = *texcoords[0] - *texcoords[2];
+
+        float delta_u1 = delta_uv1.x();
+        float delta_v1 = delta_uv1.y();
+        float delta_u2 = delta_uv2.x();
+        float delta_v2 = delta_uv2.y();
+
+        Eigen::Matrix<float, 1, 2> mat1;
+        mat1 << delta_v2, -delta_v1;
+
+        Eigen::Matrix<float, 2, 3> mat2;
+        // clang-format off
+        mat2 << e1.x(), e1.y(), e1.z(),
+                e2.x(), e2.y(), e2.z();
+        // clang-format on
+
+        tbn_u = (mat1 * mat2 / (delta_u1 * delta_v2 - delta_u2 * delta_v1))
+                    .transpose();
+
+        // printf("delta_u1: %f, delta_v1: %f\n", delta_u1, delta_v1);
+        // printf("delta_u2: %f, delta_v2: %f\n", delta_u2, delta_v2);
+
+        // printf("tbn_u: %f %f %f\n\n", tbn_u.x(), tbn_u.y(), tbn_u.z());
+    }
 
     vec3 barycoord_y = barycoord_init;
     for (int pixel_y = min_y; pixel_y < max_y; pixel_y++) {
@@ -170,17 +209,15 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                 }
 
                 // alpha test
-                // if (material->alpha_texture != nullptr) {
-                //     auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
-                //                              barycoord_lod_sample_delta);
-                //     printf("%f\n", material->alpha_texture->sample(uv, duv));
-                //     if (material->alpha_texture->sample(uv, duv) < EPS) {
-                //         // puts("!");
-                //         continue;
-                //     } else {
-                //         puts("!");
-                //     }
-                // }
+                if (material->alpha_texture != nullptr) {
+                    auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
+                                             barycoord_lod_sample_delta);
+                    // printf("%f\n", material->alpha_texture->sample(uv, duv));
+                    if (material->alpha_texture->sample(uv, duv) < EPS) {
+                        // puts("!");
+                        continue;
+                    }
+                }
 
                 float z = interpolate_z_ss(barycoord_samples[i]);
                 if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {
@@ -214,7 +251,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                 auto [uv, duv] = calc_uv(w_shading, barycoord_shading,
                                          barycoord_lod_sample_delta);
                 vec3 shading = shade(pixel_x, pixel_y, w_shading, uv, duv,
-                                     fragment_shader, enable_pbr);
+                                     fragment_shader);
 
                 if (full_covered) {  // All samples covered
                     for (auto &frame_buffer_val :
@@ -239,8 +276,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
 template <typename FragmentShaderT>
 vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
                      const std::tuple<float, float, float> &w, const vec2 &uv,
-                     const vec2 &duv, FragmentShaderT *fragment_shader,
-                     const bool enable_pbr) const {
+                     const vec2 &duv, FragmentShaderT *fragment_shader) const {
     vec3 pos = interpolate(
         std::make_tuple(vertices[0]->pos, vertices[1]->pos, vertices[2]->pos),
         w);
@@ -251,8 +287,33 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
             : interpolate(
                   std::make_tuple(*normals[0], *normals[1], *normals[2]), w);
 
-    return fragment_shader->shade(pos, normal, uv, duv, material.get(),
-                                  enable_pbr);
+    // apply normal texture
+    if (material->normal_texture != nullptr) {
+        vec3 uv_normal =
+            (material->normal_texture->sample(uv, duv) - vec3(0.5, 0.5, 0.5))
+                .normalized();  // [0, 1] -> [-1, 1]
+
+        // TBN conversion
+        mat3 tbn;
+        vec3 t = (tbn_u - tbn_u.dot(normal) * normal).normalized();
+        vec3 b = t.cross(normal);
+        // clang-format off
+        tbn << t.x(), t.y(), t.z(), 
+               b.x(), b.y(), b.z(), 
+               normal.x(), normal.y(), normal.z();
+        // clang-format on
+
+        // std::cout << tbn_u << std::endl;
+        // std::cout << tbn << std::endl << std::endl;
+
+        // printf("uv_normal: %f %f %f\n", uv_normal.x(), uv_normal.y(),
+        //        uv_normal.z());
+        // printf("before: %f %f %f\n", normal.x(), normal.y(), normal.z());
+        normal = tbn.transpose() * uv_normal;  // ? transpose
+        // printf("after: %f %f %f\n\n", normal.x(), normal.y(), normal.z());
+    }
+
+    return fragment_shader->shade(pos, normal, uv, duv, material.get());
 }
 
 #endif

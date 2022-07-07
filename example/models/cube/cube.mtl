@@ -1,0 +1,11 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl Material
+map_Kd Tex/Tex_0012.png
+map_Pr Tex/Tex_0012_G.png
+map_Pm Tex/Tex_0012_M.png
+norm Tex/Tex_0012_N.png
+Ni 1.450000
+d 1.000000
+illum 2

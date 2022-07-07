@@ -137,10 +137,9 @@ bool Object::load_model(const std::string& filename,
         // material.alpha_texname = t_material.alpha_texname;
         // material.displacement_texname = t_material.displacement_texname;
 
-        // material.roughness = t_material.roughness;
-        // material.metallic = t_material.metallic;
-        // material.sheen = t_material.sheen;
-        // material.clearcoat_thickness = t_material.clearcoat_thickness;
+        material->roughness = t_material.roughness;
+        material->metallic = t_material.metallic;
+        material->sheen = t_material.sheen;
         // material.clearcoat_thickness = t_material.clearcoat_thickness;
         // material.anisotropy = t_material.anisotropy;
         // material.anisotropy_rotation = t_material.anisotropy_rotation;
@@ -149,7 +148,21 @@ bool Object::load_model(const std::string& filename,
         // material.roughness_texname = t_material.roughness_texname;
         // material.metallic_texname = t_material.metallic_texname;
         // material.sheen_texname = t_material.sheen_texname;
-        // material.normal_texname = t_material.normal_texname;
+
+        if (!t_material.roughness_texname.empty()) {
+            material->roughness_texture =
+                load_mipmap<float>(t_material.roughness_texname, basepath);
+        }
+
+        if (!t_material.metallic_texname.empty()) {
+            material->metallic_texture =
+                load_mipmap<float>(t_material.metallic_texname, basepath);
+        }
+
+        if (!t_material.normal_texname.empty()) {
+            material->normal_texture =
+                load_mipmap<vec3>(t_material.normal_texname, basepath);
+        }
 
         materials.emplace_back(std::move(material));
     }

@@ -26,7 +26,7 @@ class OutlineFragmentShader : public FragmentShader {
    public:
     using FragmentShader::FragmentShader;
     vec3 shade(const vec3 &pos, const vec3 &normal, const vec2 &uv,
-               const vec2 &duv, Material *material, const bool enable_pbr);
+               const vec2 &duv, Material *material);
 };
 }  // namespace outline
 

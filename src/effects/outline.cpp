@@ -53,7 +53,6 @@ void outline::OutlineVertexShader::shade(Vertex *vertex) {
 
 vec3 outline::OutlineFragmentShader::shade(const vec3 &pos, const vec3 &normal,
                                            const vec2 &uv, const vec2 &duv,
-                                           Material *material,
-                                           const bool enable_pbr) {
+                                           Material *material) {
     return OUTLINE_COLOR;
 }

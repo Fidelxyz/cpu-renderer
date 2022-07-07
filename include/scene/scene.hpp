@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "geometry/object.hpp"
-#include "scene/camera.hpp"
 #include "light/light.hpp"
+#include "scene/camera.hpp"
 
 class Scene {
    public:
@@ -15,7 +15,8 @@ class Scene {
 
     Camera camera;
 
-    bool enable_pbr = false;
+    vec3 background_color = vec3(0, 0, 0);
+    bool enable_rimlight = false;
 };
 
 #endif

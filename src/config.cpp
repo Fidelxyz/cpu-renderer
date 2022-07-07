@@ -47,6 +47,13 @@ bool Config::load_scene(Scene *scene) const {
                 material->diffuse = to_vector(yaml_material["diffuse"]);
             if (yaml_material["shininess"])
                 material->shininess = yaml_material["shininess"].as<float>();
+            if (yaml_material["ior"])
+                material->ior = yaml_material["ior"].as<float>();
+
+            if (yaml_material["ambient-texname"])
+                material->ambient_texture = object.load_mipmap<vec3>(
+                    yaml_material["ambient-texname"].as<std::string>(),
+                    base_path);
 
             if (yaml_material["diffuse-texname"])
                 material->diffuse_texture = object.load_mipmap<vec3>(
@@ -58,12 +65,36 @@ bool Config::load_scene(Scene *scene) const {
                     yaml_material["specular-texname"].as<std::string>(),
                     base_path);
 
+            if (yaml_material["alpha-texname"])
+                material->alpha_texture = object.load_mipmap_alpha(
+                    yaml_material["alpha-texname"].as<std::string>(),
+                    base_path);
+
+            if (yaml_material["roughness"])
+                material->roughness = yaml_material["roughness"].as<float>();
+            if (yaml_material["metallic"])
+                material->metallic = yaml_material["metallic"].as<float>();
+            if (yaml_material["sheen"])
+                material->sheen = yaml_material["sheen"].as<float>();
+
+            if (yaml_material["normal-texname"])
+                material->normal_texture = object.load_mipmap<vec3>(
+                    yaml_material["normal-texname"].as<std::string>(),
+                    base_path);
+
             object.materials.emplace_back(std::move(material));
 
             for (auto &shape : object.shapes) {
                 for (auto &triangle : shape.triangles) {
                     triangle.material = object.materials.back();
                 }
+            }
+        }
+
+        if (yaml_object["shading-type"]) {
+            for (auto &material : object.materials) {
+                material->shading_type =
+                    yaml_object["shading-type"].as<std::string>();
             }
         }
 
@@ -81,29 +112,30 @@ bool Config::load_scene(Scene *scene) const {
     auto yaml_camera = yaml_config["camera"];
     scene->camera =
         Camera(to_vector(yaml_camera["pos"]),
-               to_vector(yaml_camera["look_dir"]).normalized(),
-               to_vector(yaml_camera["up_dir"]).normalized(),
+               to_vector(yaml_camera["look-dir"]).normalized(),
+               to_vector(yaml_camera["up-dir"]).normalized(),
                yaml_camera["fov"].as<float>() * M_PI / 180.f,
-               yaml_camera["near_plane"].as<float>(),
-               yaml_camera["far_plane"].as<float>(),
+               yaml_camera["near-plane"].as<float>(),
+               yaml_camera["far-plane"].as<float>(),
                yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>());
 
-    // enable_pbr
-    if (yaml_config["enable_pbr"]) {
-        scene->enable_pbr = yaml_config["enable_pbr"].as<bool>();
-    }
+    // other
+    if (yaml_config["background-color"])
+        scene->background_color = to_vector(yaml_config["background-color"]);
+    if (yaml_config["enable-rimlight"])
+        scene->enable_rimlight = yaml_config["enable-rimlight"].as<bool>();
 
     return true;
 }
 
 bool Config::load_threads_num(int *threads_num) const {
-    if (!yaml_config["threads_num"]) {
+    if (!yaml_config["threads-num"]) {
         std::cout << "[Warning] threads_num is not found in config."
                   << std::endl;
         return false;
     }
 
-    *threads_num = yaml_config["threads_num"].as<int>();
+    *threads_num = yaml_config["threads-num"].as<int>();
 
     if (*threads_num < 1) {
         std::cout << "[Warning] threads_num cannot be less than 1."
