@@ -4,7 +4,8 @@ Camera::Camera() {}
 
 Camera::Camera(const vec3 &pos, const vec3 &look_dir, const vec3 &up_dir,
                const float fov, const float near_plane, const float far_plane,
-               const int width, const int height) {
+               const int width, const int height,
+               const float relax_view_culling_factor) {
     this->pos = pos;
     this->look_dir = look_dir;
     this->up_dir = up_dir;
@@ -14,4 +15,5 @@ Camera::Camera(const vec3 &pos, const vec3 &look_dir, const vec3 &up_dir,
     this->width = width;
     this->height = height;
     this->aspect = static_cast<float>(width) / static_cast<float>(height);
+    this->relax_view_culling_factor = relax_view_culling_factor;
 }

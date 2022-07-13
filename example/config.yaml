@@ -33,16 +33,10 @@ objects:
   #   rotation: [0, 150, 0]
   #   scale: [0.1, 0.1, 0.1]
 
-  # - path: ../example/models/Grand_Narukami_Shrine-pbr/Grand_Narukami_Shrine.obj
-  #   basepath: ../example/models/Grand_Narukami_Shrine-pbr/
-  #   pos: [0, -0.08, -0.1]
-  #   rotation: [0, 150, 0]
-  #   scale: [0.1, 0.1, 0.1]
-
   - path: ../example/models/cube/cube.obj
     basepath: ../example/models/cube/
     pos: [0, 0, 0]
-    rotation: [45, 45, 45]
+    rotation: [-45, -30, -45]
     scale: [1, 1, 1]
     shading-type: pbr
     # material:
@@ -52,35 +46,36 @@ objects:
     #   metallic: 0.8
 
 lights:
-  - pos: [2.0, 1.0, -0.5]
-    color: [0.5, 0.5, 1.0]  # blue
-    intensity: 1
-  - pos: [-2.0, 0.0, -1.0]
-    color: [1, 0.5, 0.5]  # red
-    intensity: 1
-  - pos: [0.0, -1.0, -2.5]
+  # - pos: [2.0, 1.0, -0.5]
+  #   color: [0.5, 0.5, 1.0]  # blue
+  #   intensity: 1
+  # - pos: [-2.0, 0.0, -1.0]
+  #   color: [1, 0.5, 0.5]  # red
+  #   intensity: 1
+  - pos: [-0.5, 0.5, -0.5]
     color: [1, 1, 1]
-    intensity: 10
+    intensity: 5
   
-camera:
-  pos: [0, 0, -4]
-  look-dir: [0.0, 0.0, 1.0]
-  up-dir: [0.0, -1.0, 0.0]
-  fov: 60.0
-  near-plane: 0.01
-  far-plane: 300.0
-  width: 2000
-  height: 2000
-
 # camera:
-#   pos: [0, 1, -8]
-#   look_dir: [0.0, 0.0, 1.0]
-#   up_dir: [0.0, -1.0, 0.0]
-#   fov: 80.0
-#   near_plane: 0.01
-#   far_plane: 300.0
-#   width: 1920
-#   height: 1080
+#   pos: [0, 0, -4]
+#   look-dir: [0.0, 0.0, 1.0]
+#   up-dir: [0.0, -1.0, 0.0]
+#   fov: 60.0
+#   near-plane: 0.01
+#   far-plane: 300.0
+#   width: 2000
+#   height: 2000
+
+camera:
+  pos: [-0.4, 0.2, -1]
+  look-dir: [0.0, 0.2, -1.0]
+  up-dir: [0.0, 1.0, 0.0]
+  fov: 60.0
+  near-plane: 0.1
+  far-plane: 5.0
+  width: 1920
+  height: 1080
+  relax-view-culling-factor: 5
 
 threads-num: 8
 background-color: [0, 0, 0]

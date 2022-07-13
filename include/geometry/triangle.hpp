@@ -16,6 +16,7 @@
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 #include "shader/fragment_shader.hpp"
+#include "utils/omp_locker.hpp"
 
 class Triangle {
    public:
@@ -98,7 +99,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
     static_assert(std::is_base_of_v<FragmentShader, FragmentShaderT>);
 
     if (is_culled_normal(camera, cull_method)) return;
-    if (is_culled_view(camera)) return;
+    if (is_culled_view(camera)) return;  // ! DEBUG
 
     auto v1 = vertices[0];
     auto v2 = vertices[1];
@@ -172,18 +173,13 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
 
         tbn_u = (mat1 * mat2 / (delta_u1 * delta_v2 - delta_u2 * delta_v1))
                     .transpose();
-
-        // printf("delta_u1: %f, delta_v1: %f\n", delta_u1, delta_v1);
-        // printf("delta_u2: %f, delta_v2: %f\n", delta_u2, delta_v2);
-
-        // printf("tbn_u: %f %f %f\n\n", tbn_u.x(), tbn_u.y(), tbn_u.z());
     }
 
     vec3 barycoord_y = barycoord_init;
     for (int pixel_y = min_y; pixel_y < max_y; pixel_y++) {
         vec3 barycoord_x = barycoord_y;
         for (int pixel_x = min_x; pixel_x < max_x; pixel_x++) {
-            omp_set_lock(&mutex->at(pixel_x, pixel_y));
+            OmpLocker omp_locker(&mutex->at(pixel_x, pixel_y));
             vec3 barycoord_samples[msaa::MSAA_LEVEL];
             unsigned char covered_flag = 0;
             // for each MSAA sample
@@ -212,15 +208,14 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                 if (material->alpha_texture != nullptr) {
                     auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
                                              barycoord_lod_sample_delta);
-                    // printf("%f\n", material->alpha_texture->sample(uv, duv));
-                    if (material->alpha_texture->sample(uv, duv) < EPS) {
-                        // puts("!");
+                    if (material->alpha_texture->sample(uv, duv) < EPS)
                         continue;
-                    }
                 }
 
                 float z = interpolate_z_ss(barycoord_samples[i]);
+                // z-test
                 if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {
+                    // write into z-buffer
                     z_buffer->at(pixel_x, pixel_y)[i] = z;
                     covered_flag |= 1u << i;
                 }
@@ -266,7 +261,6 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                     }
                 }
             }
-            omp_unset_lock(&mutex->at(pixel_x, pixel_y));
             barycoord_x += barycoord_dx;
         }
         barycoord_y += barycoord_dy;
@@ -293,26 +287,18 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
             (material->normal_texture->sample(uv, duv) - vec3(0.5, 0.5, 0.5))
                 .normalized();  // [0, 1] -> [-1, 1]
 
-        // TBN conversion
+        // TBN transform
         mat3 tbn;
         vec3 t = (tbn_u - tbn_u.dot(normal) * normal).normalized();
         vec3 b = t.cross(normal);
         // clang-format off
-        tbn << t.x(), t.y(), t.z(), 
-               b.x(), b.y(), b.z(), 
+        tbn << t.x(), t.y(), t.z(),
+               b.x(), b.y(), b.z(),
                normal.x(), normal.y(), normal.z();
         // clang-format on
 
-        // std::cout << tbn_u << std::endl;
-        // std::cout << tbn << std::endl << std::endl;
-
-        // printf("uv_normal: %f %f %f\n", uv_normal.x(), uv_normal.y(),
-        //        uv_normal.z());
-        // printf("before: %f %f %f\n", normal.x(), normal.y(), normal.z());
-        normal = tbn.transpose() * uv_normal;  // ? transpose
-        // printf("after: %f %f %f\n\n", normal.x(), normal.y(), normal.z());
+        normal = tbn.transpose() * uv_normal;
     }
-
     return fragment_shader->shade(pos, normal, uv, duv, material.get());
 }
 

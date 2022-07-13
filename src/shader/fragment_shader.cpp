@@ -153,20 +153,17 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         vec3 h = (light_dir + view_dir).normalized();  // half vector
 
         float cos_l = normal.dot(light_dir);
-        if (cos_l < 0.f) continue;
-        float cos_v = std::max(0.f, normal.dot(view_dir));
-        if (cos_v < 0.f) continue;
+        if (cos_l <= 0.f) continue;
+        float cos_v = normal.dot(view_dir);
+        if (cos_v <= 0.f) continue;
 
         // float r0 = square((1 - material->ior) / (1 + material->ior));
         float r0 = square((1 - material->ior) / (1 + material->ior));
-        vec3 f0 = vec3(r0, r0, r0);
-        f0 = (1 - metallic) * f0 + metallic * base_color;
-        vec3 fresnel = f0 + (vec3(1, 1, 1) - f0) * (1 - cos_v);
+        float fresnel = r0 + (1 - r0) * (1 - cos_v);
 
         // Diffuse
 
-        vec3 diffuse =
-            (vec3(1, 1, 1) - fresnel).cwiseProduct(base_color / M_PI);
+        vec3 diffuse = (1.f - fresnel) * base_color / M_PI;
 
         // Specular: Cook-Torrance
 
@@ -184,7 +181,9 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         float g = g1 * g2;
 
         // F: Fresnel
-        vec3 f = fresnel;
+        vec3 f0 = vec3(r0, r0, r0);
+        f0 = (1 - metallic) * f0 + metallic * base_color;
+        vec3 f = f0 + (vec3(1, 1, 1) - f0) * (1 - cos_v);
 
         vec3 specular = (d * g * f) / (4 * cos_v * cos_l);
 

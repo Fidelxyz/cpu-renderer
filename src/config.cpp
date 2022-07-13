@@ -53,17 +53,17 @@ bool Config::load_scene(Scene *scene) const {
             if (yaml_material["ambient-texname"])
                 material->ambient_texture = object.load_mipmap<vec3>(
                     yaml_material["ambient-texname"].as<std::string>(),
-                    base_path);
+                    base_path, false);
 
             if (yaml_material["diffuse-texname"])
                 material->diffuse_texture = object.load_mipmap<vec3>(
                     yaml_material["diffuse-texname"].as<std::string>(),
-                    base_path);
+                    base_path, false);
 
             if (yaml_material["specular-texname"])
                 material->specular_texture = object.load_mipmap<vec3>(
                     yaml_material["specular-texname"].as<std::string>(),
-                    base_path);
+                    base_path, false);
 
             if (yaml_material["alpha-texname"])
                 material->alpha_texture = object.load_mipmap_alpha(
@@ -80,7 +80,7 @@ bool Config::load_scene(Scene *scene) const {
             if (yaml_material["normal-texname"])
                 material->normal_texture = object.load_mipmap<vec3>(
                     yaml_material["normal-texname"].as<std::string>(),
-                    base_path);
+                    base_path, true);
 
             object.materials.emplace_back(std::move(material));
 
@@ -117,7 +117,8 @@ bool Config::load_scene(Scene *scene) const {
                yaml_camera["fov"].as<float>() * M_PI / 180.f,
                yaml_camera["near-plane"].as<float>(),
                yaml_camera["far-plane"].as<float>(),
-               yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>());
+               yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>(),
+               yaml_camera["relax-view-culling-factor"].as<float>());
 
     // other
     if (yaml_config["background-color"])
@@ -130,7 +131,7 @@ bool Config::load_scene(Scene *scene) const {
 
 bool Config::load_threads_num(int *threads_num) const {
     if (!yaml_config["threads-num"]) {
-        std::cout << "[Warning] threads_num is not found in config."
+        std::cout << "[Warning] threads-num is not found in config."
                   << std::endl;
         return false;
     }
@@ -138,7 +139,7 @@ bool Config::load_threads_num(int *threads_num) const {
     *threads_num = yaml_config["threads-num"].as<int>();
 
     if (*threads_num < 1) {
-        std::cout << "[Warning] threads_num cannot be less than 1."
+        std::cout << "[Warning] threads-num cannot be less than 1."
                   << std::endl;
         return false;
     }

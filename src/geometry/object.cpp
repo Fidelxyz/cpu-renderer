@@ -31,16 +31,21 @@ Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
 void Object::do_model_transform() {
     // vertex
     for (auto& vertex : vertices) {
-        vec4 pos = model_transform.transform(
-            vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
-        vertex->pos = vec3(pos.x(), pos.y(), pos.z()) / pos.w();
+        vec4d pos = model_transform.transform(
+            vec4d(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
+        vertex->pos =
+            (vec3d(pos.x(), pos.y(), pos.z()) / pos.w()).cast<float>();
         vertex->normal =
-            normal_transform.transform(vertex->normal).normalized();
+            normal_transform.transform(vertex->normal.cast<double>())
+                .normalized()
+                .cast<float>();
     }
 
     // normal
     for (auto& normal : normals) {
-        *normal = (normal_transform.transform(*normal)).normalized();
+        *normal = normal_transform.transform(normal->cast<double>())
+                      .normalized()
+                      .cast<float>();
     }
 }
 
@@ -115,15 +120,15 @@ bool Object::load_model(const std::string& filename,
 
         if (!t_material.ambient_texname.empty())
             material->ambient_texture =
-                load_mipmap<vec3>(t_material.ambient_texname, basepath);
+                load_mipmap<vec3>(t_material.ambient_texname, basepath, false);
 
         if (!t_material.diffuse_texname.empty())
             material->diffuse_texture =
-                load_mipmap<vec3>(t_material.diffuse_texname, basepath);
+                load_mipmap<vec3>(t_material.diffuse_texname, basepath, false);
 
         if (!t_material.specular_texname.empty())
             material->specular_texture =
-                load_mipmap<vec3>(t_material.specular_texname, basepath);
+                load_mipmap<vec3>(t_material.specular_texname, basepath, false);
 
         if (!t_material.alpha_texname.empty()) {
             material->alpha_texture =
@@ -150,18 +155,18 @@ bool Object::load_model(const std::string& filename,
         // material.sheen_texname = t_material.sheen_texname;
 
         if (!t_material.roughness_texname.empty()) {
-            material->roughness_texture =
-                load_mipmap<float>(t_material.roughness_texname, basepath);
+            material->roughness_texture = load_mipmap<float>(
+                t_material.roughness_texname, basepath, true);
         }
 
         if (!t_material.metallic_texname.empty()) {
             material->metallic_texture =
-                load_mipmap<float>(t_material.metallic_texname, basepath);
+                load_mipmap<float>(t_material.metallic_texname, basepath, true);
         }
 
         if (!t_material.normal_texname.empty()) {
             material->normal_texture =
-                load_mipmap<vec3>(t_material.normal_texname, basepath);
+                load_mipmap<vec3>(t_material.normal_texname, basepath, true);
         }
 
         materials.emplace_back(std::move(material));

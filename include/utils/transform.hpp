@@ -7,13 +7,12 @@
 
 class NormalTransform {
    private:
-    mat3 matrix;
+    mat3d matrix;
 
    public:
     NormalTransform();
 
-    template <typename T>
-    T transform(const T &pos) const;
+    vec3d transform(const vec3d &pos) const;
 
     void rotation(const vec3 &angle_deg);
     void scale(const vec3 &factor);
@@ -21,31 +20,20 @@ class NormalTransform {
 
 class PositionTransform {
    private:
-    mat4 matrix;
+    mat4d matrix;
 
    public:
     PositionTransform();
 
-    template <typename T>
-    T transform(const T &pos) const;
+    vec4d transform(const vec4d &pos) const;
 
     void translation(const vec3 &dist);
     void rotation(const vec3 &angle_deg);
     void scale(const vec3 &factor);
 
     void world_to_view(const Camera &camera);
-    void view_to_projection(const Camera &camera);
-    void projection_to_screen(const Camera &camera);
+    void view_to_ndc(const Camera &camera);
+    void ndc_to_screen(const Camera &camera);
 };
-
-template <typename T>
-T NormalTransform::transform(const T &pos) const {
-    return matrix * pos;
-}
-
-template <typename T>
-T PositionTransform::transform(const T &pos) const {
-    return matrix * pos;
-}
 
 #endif

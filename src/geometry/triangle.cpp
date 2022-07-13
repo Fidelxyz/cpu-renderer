@@ -99,26 +99,48 @@ bool Triangle::is_culled_normal(const vec3 &normal, const vec3 &pos,
 
 bool Triangle::is_culled_view(const Camera &camera) const {
     // cull boundary
-    const float L[] = {-EPS, -EPS, -EPS};
-    const float R[] = {static_cast<float>(camera.width) + EPS,
-                       static_cast<float>(camera.height) + EPS, 1.f + EPS};
+    const float L1[] = {-EPS, -EPS, -EPS};
+    const float R1[] = {camera.width + EPS, camera.height + EPS, 1.f + EPS};
+
+    const float relax_culling_factor = camera.relax_view_culling_factor;
+    const float L2[] = {-camera.width * relax_culling_factor - EPS,
+                        -camera.height * relax_culling_factor - EPS,
+                        -relax_culling_factor - EPS};
+    const float R2[] = {camera.width * (relax_culling_factor + 1) + EPS,
+                        camera.height * (relax_culling_factor + 1) + EPS,
+                        (relax_culling_factor + 1) + EPS};
 
     // for each dimension
     for (size_t i = 0; i < 3; i++) {
         // culled if all vertices are outside the view (in the same side)
 
         // test < 0
-        if (vertices[0]->screen_pos[i] < L[i] &&
-            vertices[1]->screen_pos[i] < L[i] &&
-            vertices[2]->screen_pos[i] < L[i]) {
+        if (vertices[0]->screen_pos[i] < L1[i] &&
+            vertices[1]->screen_pos[i] < L1[i] &&
+            vertices[2]->screen_pos[i] < L1[i]) {
             return true;
         }
 
         // test > 1
-        if (vertices[0]->screen_pos[i] > R[i] &&
-            vertices[1]->screen_pos[i] > R[i] &&
-            vertices[2]->screen_pos[i] > R[i]) {
+        if (vertices[0]->screen_pos[i] > R1[i] &&
+            vertices[1]->screen_pos[i] > R1[i] &&
+            vertices[2]->screen_pos[i] > R1[i]) {
             return true;
+        }
+
+        // relax culling
+        if (relax_culling_factor > 0.f) {
+            if (vertices[0]->screen_pos[i] < L2[i] ||
+                vertices[1]->screen_pos[i] < L2[i] ||
+                vertices[2]->screen_pos[i] < L2[i]) {
+                return true;
+            }
+
+            if (vertices[0]->screen_pos[i] > R2[i] ||
+                vertices[1]->screen_pos[i] > R2[i] ||
+                vertices[2]->screen_pos[i] > R2[i]) {
+                return true;
+            }
         }
     }
     return false;
@@ -170,20 +192,14 @@ float Triangle::interpolate_z_ss(const vec3 &barycoord_ss) const {
 
 std::tuple<float, float, float> Triangle::corrected_barycoord(
     const vec3 &barycoord_ss) const {
-    float w1 = vertices[0]->w;
-    float w2 = vertices[1]->w;
-    float w3 = vertices[2]->w;
+    double w1 = vertices[0]->w;
+    double w2 = vertices[1]->w;
+    double w3 = vertices[2]->w;
 
-    // ? normalize
-    // float x = w1 + w2 + w3;
-    // w1 /= x;
-    // w2 /= x;
-    // w3 /= x;
-
-    float alpha = barycoord_ss.x();
-    float beta = barycoord_ss.y();
-    float gamma = barycoord_ss.z();
-    float l = alpha / w1 + beta / w2 + gamma / w3;
+    double alpha = barycoord_ss.x();
+    double beta = barycoord_ss.y();
+    double gamma = barycoord_ss.z();
+    double l = alpha / w1 + beta / w2 + gamma / w3;
 
     return std::make_tuple(alpha / w1 / l, beta / w2 / l, gamma / w3 / l);
 }
@@ -218,5 +234,6 @@ std::tuple<vec2, vec2> Triangle::calc_uv(
         float dv = (std::fabs(ddx.y()) + std::fabs(ddy.y())) / 2.f;
         duv = vec2(du, dv);
     }
+
     return std::make_tuple(uv, duv);
 }

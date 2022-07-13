@@ -52,11 +52,13 @@ class Object {
 
     template <typename T>
     std::shared_ptr<Texture<T>> load_texture(
-        const std::string &texname, const std::filesystem::path &base_path);
+        const std::string &texname, const std::filesystem::path &base_path,
+        const bool linear);
 
     template <typename T>
     std::shared_ptr<Mipmap<T>> load_mipmap(
-        const std::string &texname, const std::filesystem::path &base_path);
+        const std::string &texname, const std::filesystem::path &base_path,
+        const bool linear);
 
     std::shared_ptr<Texture<float>> load_texture_alpha(
         const std::string &texname, const std::filesystem::path &base_path);
@@ -67,7 +69,8 @@ class Object {
 
 template <typename T>
 std::shared_ptr<Texture<T>> Object::load_texture(
-    const std::string &texname, const std::filesystem::path &base_path) {
+    const std::string &texname, const std::filesystem::path &base_path,
+    const bool linear) {
     static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     std::unordered_map<std::string, std::shared_ptr<Texture<T>>> *texture_map;
@@ -85,14 +88,15 @@ std::shared_ptr<Texture<T>> Object::load_texture(
         std::cout << "Load texture: " << texname << std::endl;
         tex_ptr = std::make_shared<Texture<T>>();
         texture_map->emplace(texname, tex_ptr);
-        tex_ptr->read_img(base_path / texname, false);
+        tex_ptr->read_img(base_path / texname, linear);
     }
     return tex_ptr;
 }
 
 template <typename T>
 std::shared_ptr<Mipmap<T>> Object::load_mipmap(
-    const std::string &texname, const std::filesystem::path &base_path) {
+    const std::string &texname, const std::filesystem::path &base_path,
+    const bool linear) {
     static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
 
     std::unordered_map<std::string, std::shared_ptr<Mipmap<T>>> *mipmap_map;
@@ -108,7 +112,7 @@ std::shared_ptr<Mipmap<T>> Object::load_mipmap(
         mipmap_ptr = mipmap_map->at(texname);
     } else {  // not found
         std::shared_ptr<Texture<T>> texture =
-            load_texture<T>(texname, base_path);
+            load_texture<T>(texname, base_path, linear);
         mipmap_ptr = std::make_shared<Mipmap<T>>(texture);
     }
     return mipmap_ptr;
