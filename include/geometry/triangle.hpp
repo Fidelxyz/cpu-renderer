@@ -16,6 +16,7 @@
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
 #include "shader/fragment_shader.hpp"
+#include "texture/buffer.hpp"
 #include "utils/omp_locker.hpp"
 
 class Triangle {
@@ -37,8 +38,7 @@ class Triangle {
     bool is_inside_ss(const vec3 &w_ss) const;
 
     template <typename FragmentShaderT>
-    void rasterize(Texture<omp_lock_t> *mutex, frame_buffer_t *frame_buffer,
-                   z_buffer_t *z_buffer, FragmentShaderT *fragment_shader,
+    void rasterize(Buffer *buffer, FragmentShaderT *fragment_shader,
                    const Camera &camera, CullMethod = NO_CULL);
 
    private:
@@ -73,9 +73,10 @@ class Triangle {
                          const std::tuple<float, float, float> &weights);
 
     template <typename FragmentShaderT>
-    vec3 shade(size_t pixel_x, size_t pixel_y,
-               const std::tuple<float, float, float> &w, const vec2 &uv,
-               const vec2 &duv, FragmentShaderT *fragment_shader) const;
+    std::tuple<vec3, vec3, vec3> shade(size_t pixel_x, size_t pixel_y,
+                                       const std::tuple<float, float, float> &w,
+                                       const vec2 &uv, const vec2 &duv,
+                                       FragmentShaderT *fragment_shader) const;
 
     std::tuple<vec2, vec2> calc_uv(
         const std::tuple<float, float, float> &w_shading,
@@ -92,14 +93,12 @@ T Triangle::interpolate(const std::tuple<T, T, T> &vals,
 }
 
 template <typename FragmentShaderT>
-void Triangle::rasterize(Texture<omp_lock_t> *mutex,
-                         frame_buffer_t *frame_buffer, z_buffer_t *z_buffer,
-                         FragmentShaderT *fragment_shader, const Camera &camera,
-                         CullMethod cull_method) {
+void Triangle::rasterize(Buffer *buffer, FragmentShaderT *fragment_shader,
+                         const Camera &camera, CullMethod cull_method) {
     static_assert(std::is_base_of_v<FragmentShader, FragmentShaderT>);
 
     if (is_culled_normal(camera, cull_method)) return;
-    if (is_culled_view(camera)) return;  // ! DEBUG
+    if (is_culled_view(camera)) return;
 
     auto v1 = vertices[0];
     auto v2 = vertices[1];
@@ -150,7 +149,7 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
         barycoord_lod_sample_x_delta, barycoord_lod_sample_y_delta);
 
     // tangent space conversion
-    if (!texcoords.empty()) {
+    if (!texcoords.empty() && material->normal_texture != nullptr) {
         vec3 e1 = vertices[0]->pos - vertices[1]->pos;
         vec3 e2 = vertices[0]->pos - vertices[2]->pos;
 
@@ -172,14 +171,15 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
         // clang-format on
 
         tbn_u = (mat1 * mat2 / (delta_u1 * delta_v2 - delta_u2 * delta_v1))
-                    .transpose();
+                    .transpose()
+                    .normalized();
     }
 
     vec3 barycoord_y = barycoord_init;
     for (int pixel_y = min_y; pixel_y < max_y; pixel_y++) {
         vec3 barycoord_x = barycoord_y;
         for (int pixel_x = min_x; pixel_x < max_x; pixel_x++) {
-            OmpLocker omp_locker(&mutex->at(pixel_x, pixel_y));
+            OmpLocker omp_locker(&buffer->mutex->at(pixel_x, pixel_y));
             vec3 barycoord_samples[msaa::MSAA_LEVEL];
             unsigned char covered_flag = 0;
             // for each MSAA sample
@@ -206,17 +206,18 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
 
                 // alpha test
                 if (material->alpha_texture != nullptr) {
-                    auto [uv, duv] = calc_uv(w_sample, barycoord_samples[i],
-                                             barycoord_lod_sample_delta);
-                    if (material->alpha_texture->sample(uv, duv) < EPS)
-                        continue;
+                    vec2 uv = interpolate(
+                        std::make_tuple(*texcoords[0], *texcoords[1],
+                                        *texcoords[2]),
+                        w_sample);
+                    if (material->alpha_texture->sample(uv) < EPS) continue;
                 }
 
                 float z = interpolate_z_ss(barycoord_samples[i]);
                 // z-test
-                if (0.f < z && z < z_buffer->at(pixel_x, pixel_y)[i]) {
+                if (0.0 < z && z < buffer->z_buffer->at(pixel_x, pixel_y)[i]) {
                     // write into z-buffer
-                    z_buffer->at(pixel_x, pixel_y)[i] = z;
+                    buffer->z_buffer->at(pixel_x, pixel_y)[i] = z;
                     covered_flag |= 1u << i;
                 }
             }
@@ -245,21 +246,17 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
                 auto w_shading = corrected_barycoord(barycoord_shading);
                 auto [uv, duv] = calc_uv(w_shading, barycoord_shading,
                                          barycoord_lod_sample_delta);
-                vec3 shading = shade(pixel_x, pixel_y, w_shading, uv, duv,
-                                     fragment_shader);
+                auto [shading, pos, normal] = shade(pixel_x, pixel_y, w_shading,
+                                                    uv, duv, fragment_shader);
 
-                if (full_covered) {  // All samples covered
-                    for (auto &frame_buffer_val :
-                         frame_buffer->at(pixel_x, pixel_y)) {
-                        frame_buffer_val = shading;
-                    }
-                } else {  // Partical samples covered
-                    for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
-                        if (covered_flag & (1u << i)) {
-                            frame_buffer->at(pixel_x, pixel_y)[i] = shading;
-                        }
+                for (size_t i = 0; i < msaa::MSAA_LEVEL; i++) {
+                    if (full_covered || (covered_flag & (1u << i))) {
+                        buffer->frame_buffer->at(pixel_x, pixel_y)[i] = shading;
+                        buffer->pos_buffer->at(pixel_x, pixel_y)[i] = pos;
+                        buffer->normal_buffer->at(pixel_x, pixel_y)[i] = normal;
                     }
                 }
+                buffer->full_covered->at(pixel_x, pixel_y) = full_covered;
             }
             barycoord_x += barycoord_dx;
         }
@@ -268,9 +265,9 @@ void Triangle::rasterize(Texture<omp_lock_t> *mutex,
 }
 
 template <typename FragmentShaderT>
-vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
-                     const std::tuple<float, float, float> &w, const vec2 &uv,
-                     const vec2 &duv, FragmentShaderT *fragment_shader) const {
+std::tuple<vec3, vec3, vec3> Triangle::shade(
+    size_t pixel_x, size_t pixel_y, const std::tuple<float, float, float> &w,
+    const vec2 &uv, const vec2 &duv, FragmentShaderT *fragment_shader) const {
     vec3 pos = interpolate(
         std::make_tuple(vertices[0]->pos, vertices[1]->pos, vertices[2]->pos),
         w);
@@ -282,7 +279,13 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
                   std::make_tuple(*normals[0], *normals[1], *normals[2]), w);
 
     // apply normal texture
-    if (material->normal_texture != nullptr) {
+    if (material->normal_texture != nullptr && !std::isnan(tbn_u.x())) {
+        // * Why check `!std::isnan(tbn_u.x())`:
+        // * delta_uv may be 0
+        // * -> tbn_u = inf
+        // * -> tbu_n.normalized() = nan
+        // * -> normal = nan
+
         vec3 uv_normal =
             (material->normal_texture->sample(uv, duv) - vec3(0.5, 0.5, 0.5))
                 .normalized();  // [0, 1] -> [-1, 1]
@@ -299,7 +302,10 @@ vec3 Triangle::shade(size_t pixel_x, size_t pixel_y,
 
         normal = tbn.transpose() * uv_normal;
     }
-    return fragment_shader->shade(pos, normal, uv, duv, material.get());
+
+    vec3 shading = fragment_shader->shade(pos, normal, uv, duv, material.get());
+
+    return std::make_tuple(shading, pos, normal);
 }
 
 #endif

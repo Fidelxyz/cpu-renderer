@@ -102,13 +102,7 @@ bool Triangle::is_culled_view(const Camera &camera) const {
     const float L1[] = {-EPS, -EPS, -EPS};
     const float R1[] = {camera.width + EPS, camera.height + EPS, 1.f + EPS};
 
-    const float relax_culling_factor = camera.relax_view_culling_factor;
-    const float L2[] = {-camera.width * relax_culling_factor - EPS,
-                        -camera.height * relax_culling_factor - EPS,
-                        -relax_culling_factor - EPS};
-    const float R2[] = {camera.width * (relax_culling_factor + 1) + EPS,
-                        camera.height * (relax_culling_factor + 1) + EPS,
-                        (relax_culling_factor + 1) + EPS};
+    const float culling_min_w = camera.view_culling_min_w;
 
     // for each dimension
     for (size_t i = 0; i < 3; i++) {
@@ -128,19 +122,9 @@ bool Triangle::is_culled_view(const Camera &camera) const {
             return true;
         }
 
-        // relax culling
-        if (relax_culling_factor > 0.f) {
-            if (vertices[0]->screen_pos[i] < L2[i] ||
-                vertices[1]->screen_pos[i] < L2[i] ||
-                vertices[2]->screen_pos[i] < L2[i]) {
-                return true;
-            }
-
-            if (vertices[0]->screen_pos[i] > R2[i] ||
-                vertices[1]->screen_pos[i] > R2[i] ||
-                vertices[2]->screen_pos[i] > R2[i]) {
-                return true;
-            }
+        if (vertices[0]->w < culling_min_w || vertices[1]->w < culling_min_w ||
+            vertices[2]->w < culling_min_w) {
+            return true;
         }
     }
     return false;
@@ -192,14 +176,14 @@ float Triangle::interpolate_z_ss(const vec3 &barycoord_ss) const {
 
 std::tuple<float, float, float> Triangle::corrected_barycoord(
     const vec3 &barycoord_ss) const {
-    double w1 = vertices[0]->w;
-    double w2 = vertices[1]->w;
-    double w3 = vertices[2]->w;
+    float w1 = vertices[0]->w;
+    float w2 = vertices[1]->w;
+    float w3 = vertices[2]->w;
 
-    double alpha = barycoord_ss.x();
-    double beta = barycoord_ss.y();
-    double gamma = barycoord_ss.z();
-    double l = alpha / w1 + beta / w2 + gamma / w3;
+    float alpha = barycoord_ss.x();
+    float beta = barycoord_ss.y();
+    float gamma = barycoord_ss.z();
+    float l = alpha / w1 + beta / w2 + gamma / w3;
 
     return std::make_tuple(alpha / w1 / l, beta / w2 / l, gamma / w3 / l);
 }

@@ -8,7 +8,7 @@ class Vertex {
    public:
     vec3 pos;
     vec3 screen_pos;
-    double w;
+    float w;
     vec3 normal = vec3(0, 0, 0);
 
     Vertex();

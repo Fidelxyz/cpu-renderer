@@ -13,10 +13,10 @@ VertexShader::VertexShader(const Camera &camera) {
 }
 
 void VertexShader::shade(Vertex *vertex) {
-    vec4d screen_pos = position_transform.transform(
-        vec4d(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
+    vec4 screen_pos = position_transform.transform(
+        vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
     vertex->screen_pos =
-        (vec3d(screen_pos.x(), screen_pos.y(), screen_pos.z()) / screen_pos.w())
-            .cast<float>();
+        (vec3(screen_pos.x(), screen_pos.y(), screen_pos.z()) /
+         screen_pos.w());
     vertex->w = screen_pos.w();
 }

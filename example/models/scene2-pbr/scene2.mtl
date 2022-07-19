@@ -1,0 +1,460 @@
+# Blender MTL File: '鸣神大社.blend'
+# Material Count: 40
+
+newmtl 材質1
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0002_N.png
+map_Kd Tex/Tex_0002.png
+map_Pr Tex/Tex_0002_G.png
+map_Pm Tex/Tex_0002_M.png
+bump Tex/Tex_0002_A.png
+
+newmtl 材質10
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0012_N.png
+map_Kd Tex/Tex_0012.png
+map_Pr Tex/Tex_0012_G.png
+map_Pm Tex/Tex_0012_M.png
+
+newmtl 材質11
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0013_N.png
+map_Kd Tex/Tex_0013.png
+map_Pr Tex/Tex_0013_G.png
+map_Pm Tex/Tex_0013_M.png
+bump Tex/Tex_0013_A.png
+
+newmtl 材質12
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0014_N.png
+map_Kd Tex/Tex_0014.png
+map_Pr Tex/Tex_0014_G.png
+map_Pm Tex/Tex_0014_M.png
+map_Ke Tex/Tex_0014_E.png
+bump Tex/Tex_0014_A2.png
+
+newmtl 材質13
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0015_N.png
+map_Kd Tex/Tex_0015.png
+map_Pr Tex/Tex_0015_G.png
+
+newmtl 材質14
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+map_d Tex/Tex_0006_3.png
+bump Tex/Tex_0006_A.png
+
+newmtl 材質15
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0018_N.png
+map_Kd Tex/Tex_0018.png
+map_Pr Tex/Tex_0018_G.png
+map_Pm Tex/Tex_0018_M.png
+
+newmtl 材質16
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0019_N.png
+map_Kd Tex/Tex_0019.png
+
+newmtl 材質17
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+map_Kd Tex/Tex_0020.png
+
+newmtl 材質18
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0021_N.png
+map_Kd Tex/Tex_0021.png
+map_Pr Tex/Tex_0021_G.png
+map_Pm Tex/Tex_0021_M.png
+
+newmtl 材質19
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0025_N.png
+map_Kd Tex/Tex_0025.png
+map_Pr Tex/Tex_0025_G.png
+bump Tex/Tex_0025_A2.png
+
+newmtl 材質2
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0003_N.png
+map_Kd Tex/Tex_0003.png
+map_Pr Tex/Tex_0003_G.png
+map_Pm Tex/Tex_0003_M.png
+bump Tex/Tex_0003_A.png
+
+newmtl 材質20
+Kd 0.800000 0.800000 0.800000
+Ni 2.000000
+Pr 0.000000
+Pm 0.000000
+d 1.000000
+illum 1
+map_Kd Tex/Tex_0024.png
+map_Ke Tex/Tex_0024_E.png
+bump Tex/Tex_0024_A.png
+
+newmtl 材質21
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0026_N.png
+map_Kd Tex/Tex_0026.png
+map_Pr Tex/Tex_0026_G.png
+
+newmtl 材質22
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0027_N.png
+map_Kd Tex/Tex_0027.png
+map_Pr Tex/Tex_0027_G.png
+
+newmtl 材質23
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0028_N.png
+map_Kd Tex/Tex_0028.png
+map_Pr Tex/Tex_0028_G.png
+
+newmtl 材質24
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0029_N.png
+map_Kd Tex/Tex_0029.png
+map_Pr Tex/Tex_0029_G.png
+
+newmtl 材質25
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0030_N.png
+map_Kd Tex/Tex_0030.png
+map_Pr Tex/Tex_0030_G.png
+
+newmtl 材質26
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0031_N.png
+map_Kd Tex/Tex_0031.png
+map_Pr Tex/Tex_0031_G.png
+
+newmtl 材質27
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0032_N.png
+map_Kd Tex/Tex_0032.png
+map_Pr Tex/Tex_0032_G.png
+
+newmtl 材質28
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0033_N.png
+map_Kd Tex/Tex_0033.png
+map_Pr Tex/Tex_0033_G.png
+
+newmtl 材質29
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0034_N.png
+map_Kd Tex/Tex_0034.png
+
+newmtl 材質3
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0004_N.png
+map_Kd Tex/Tex_0004.png
+map_Pr Tex/Tex_0004_G.png
+map_Pm Tex/Tex_0004_M.png
+
+newmtl 材質30
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0035_N.png
+map_Kd Tex/Tex_0035.png
+map_Pr Tex/Tex_0035_G.png
+
+newmtl 材質31
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 1
+map_d Tex/Tex_0038_3.png
+bump Tex/Tex_0038_A.png
+
+newmtl 材質32
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0040_N.png
+map_Kd Tex/Tex_0040.png
+map_Pr Tex/Tex_0040_G.png
+map_Pm Tex/Tex_0040_M.png
+
+newmtl 材質34
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0017_N.png
+map_Kd Tex/Tex_0017.png
+map_Pr Tex/Tex_0017_G.png
+map_Pm Tex/Tex_0017_M.png
+bump Tex/Tex_0017_A2.png
+
+newmtl 材質35
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 1
+map_Kd Tex/Tex_0001.png
+map_d Tex/Tex_0001.png
+
+newmtl 材質36
+Kd 1.000000 1.000000 1.000000
+Ni 7.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 3
+norm Tex/Tex_0016_N.png
+map_Kd Tex/Tex_0016.png
+map_Pr Tex/Tex_0016_G.png
+map_Pm Tex/Tex_0016_M.png
+map_Ke Tex/Tex_0016_E.png
+bump Tex/Tex_0016_A2.png
+
+newmtl 材質37
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0023_N.png
+map_Kd Tex/Tex_0023.png
+map_Pr Tex/Tex_0023_G.png
+map_Pm Tex/Tex_0023_M.png
+
+newmtl 材質38
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0022_N.png
+map_Kd Tex/Tex_0022.png
+map_Pr Tex/Tex_0022_G.png
+bump Tex/Tex_0022_A2.png
+
+newmtl 材質39
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 1
+map_Kd Tex/Tex_0037_3.png
+map_d Tex/Tex_0037_3.png
+bump Tex/Tex_0037_A.png
+
+newmtl 材質4
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0005_N.png
+map_Kd Tex/Tex_0005.png
+map_Pr Tex/Tex_0005_G.png
+map_Pm Tex/Tex_0005_M.png
+
+newmtl 材質40
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+map_Kd Tex/Tex_0039.png
+map_d Tex/Tex_0039.png
+bump Tex/Tex_0039_A2.png
+
+newmtl 材質5
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0007_N.png
+map_Kd Tex/Tex_0007.png
+map_Pr Tex/Tex_0007_G.png
+map_Pm Tex/Tex_0007_M.png
+bump Tex/Tex_0007_A2.png
+
+newmtl 材質6
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0008_N.png
+map_Kd Tex/Tex_0008.png
+map_Pm Tex/Tex_0008_M.png
+
+newmtl 材質7
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0009_N.png
+map_Kd Tex/Tex_0009.png
+map_Pr Tex/Tex_0009_G.png
+map_Pm Tex/Tex_0009_M.png
+
+newmtl 材質8
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0010_N.png
+map_Kd Tex/Tex_0010.png
+map_Pr Tex/Tex_0010_G.png
+
+newmtl 材質9
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2
+norm Tex/Tex_0011_N.png
+map_Kd Tex/Tex_0011.png
+map_Pr Tex/Tex_0011_G.png
+map_Pm Tex/Tex_0011_M.png
+bump Tex/Tex_0011_A2.png
+
+newmtl 风格化水
+Kd 0.800000 0.800000 0.800000
+Ni 5.000000
+Pr 1.000000
+Pm 0.000000
+d 1.000000
+illum 2

@@ -65,8 +65,13 @@ bool Config::load_scene(Scene *scene) const {
                     yaml_material["specular-texname"].as<std::string>(),
                     base_path, false);
 
+            if (yaml_material["bump-texname"])
+                material->bump_texture = object.load_mipmap<float>(
+                    yaml_material["bump-texname"].as<std::string>(), base_path,
+                    true);
+
             if (yaml_material["alpha-texname"])
-                material->alpha_texture = object.load_mipmap_alpha(
+                material->alpha_texture = object.load_texture_alpha(
                     yaml_material["alpha-texname"].as<std::string>(),
                     base_path);
 
@@ -92,6 +97,7 @@ bool Config::load_scene(Scene *scene) const {
         }
 
         if (yaml_object["shading-type"]) {
+            object.shading_type = yaml_object["shading-type"].as<std::string>();
             for (auto &material : object.materials) {
                 material->shading_type =
                     yaml_object["shading-type"].as<std::string>();
@@ -110,21 +116,29 @@ bool Config::load_scene(Scene *scene) const {
 
     // camera
     auto yaml_camera = yaml_config["camera"];
-    scene->camera =
-        Camera(to_vector(yaml_camera["pos"]),
-               to_vector(yaml_camera["look-dir"]).normalized(),
-               to_vector(yaml_camera["up-dir"]).normalized(),
-               yaml_camera["fov"].as<float>() * M_PI / 180.f,
-               yaml_camera["near-plane"].as<float>(),
-               yaml_camera["far-plane"].as<float>(),
-               yaml_camera["width"].as<int>(), yaml_camera["height"].as<int>(),
-               yaml_camera["relax-view-culling-factor"].as<float>());
+    scene->camera = Camera(
+        to_vector(yaml_camera["pos"]), to_vector(yaml_camera["rotation"]),
+        yaml_camera["fov"].as<float>() * M_PI / 180.f,
+        yaml_camera["near-plane"].as<float>(),
+        yaml_camera["far-plane"].as<float>(), yaml_camera["width"].as<int>(),
+        yaml_camera["height"].as<int>(),
+        yaml_camera["view-culling-min-w"].as<float>());
 
     // other
     if (yaml_config["background-color"])
         scene->background_color = to_vector(yaml_config["background-color"]);
-    if (yaml_config["enable-rimlight"])
-        scene->enable_rimlight = yaml_config["enable-rimlight"].as<bool>();
+
+    if (yaml_config["rimlight"]) {
+        scene->enable_rimlight = yaml_config["rimlight"]["enable"].as<bool>();
+    }
+
+    if (yaml_config["bloom"] && yaml_config["bloom"]["enable"].as<bool>()) {
+        auto yaml_bloom = yaml_config["bloom"];
+        scene->enable_bloom = true;
+        scene->bloom_strength = yaml_bloom["strength"].as<float>();
+        scene->bloom_radius = yaml_bloom["radius"].as<float>();
+        scene->bloom_iteration = yaml_bloom["iteration"].as<int>();
+    }
 
     return true;
 }

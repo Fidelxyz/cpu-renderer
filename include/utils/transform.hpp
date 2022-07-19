@@ -5,27 +5,30 @@
 #include "global.hpp"
 #include "scene/camera.hpp"
 
-class NormalTransform {
-   private:
-    mat3d matrix;
+class DirectionTransform {
+   protected:
+    mat3 matrix;
 
    public:
-    NormalTransform();
+    DirectionTransform();
 
-    vec3d transform(const vec3d &pos) const;
-
+    vec3 transform(const vec3 &pos) const;
     void rotation(const vec3 &angle_deg);
+};
+
+class NormalTransform : public DirectionTransform {
+   public:
     void scale(const vec3 &factor);
 };
 
 class PositionTransform {
-   private:
-    mat4d matrix;
+   protected:
+    mat4 matrix;
 
    public:
     PositionTransform();
 
-    vec4d transform(const vec4d &pos) const;
+    vec4 transform(const vec4 &pos) const;
 
     void translation(const vec3 &dist);
     void rotation(const vec3 &angle_deg);

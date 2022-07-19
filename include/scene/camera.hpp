@@ -15,13 +15,12 @@ class Camera {
     int width;
     int height;
     float aspect;
-    float relax_view_culling_factor;
+    float view_culling_min_w;
 
     Camera();
-    Camera(const vec3 &pos, const vec3 &look_dir, const vec3 &up_dir,
-           const float fov, const float near_plane, const float far_plane,
-           const int width, const int height,
-           const float relax_view_culling_factor);
+    Camera(const vec3 &pos, const vec3 &rotation, const float fov,
+           const float near_plane, const float far_plane, const int width,
+           const int height, const float view_culling_min_w);
 };
 
 #endif

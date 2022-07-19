@@ -60,12 +60,12 @@ vec3 FragmentShader::blinn_phong(const vec3 &pos, const vec3 &normal,
 
 float ramp(const float x) {
     constexpr float STEP1 = 0.3;
-    constexpr float STEP2 = 0.6;
+    constexpr float STEP2 = 0.7;
     constexpr float SMOTHNESS1 = 0.3;
     constexpr float SMOTHNESS2 = 0.1;
-    constexpr float SHADOW = 0.4;
-    constexpr float GAMMA = 0.7;
-    constexpr float HIGHLIGHT = 0.9;
+    constexpr float SHADOW = 0.3;
+    constexpr float GAMMA = 0.5;
+    constexpr float HIGHLIGHT = 0.7;
 
     static_assert(0.f <= STEP1 && STEP1 <= STEP2 && STEP2 <= 1.f);
     static_assert(0.f <= SHADOW && SHADOW <= GAMMA && GAMMA <= HIGHLIGHT &&
@@ -79,10 +79,10 @@ float ramp(const float x) {
 }
 
 float ramp_face(const float x) {
-    constexpr float STEP = 0.5;
+    constexpr float STEP = 0.4;
     constexpr float SMOTHNESS = 0.05;
-    constexpr float SHADOW = 0.6;
-    constexpr float HIGHLIGHT = 0.9;
+    constexpr float SHADOW = 0.5;
+    constexpr float HIGHLIGHT = 0.7;
 
     static_assert(0.f <= STEP && STEP <= 1.f);
     static_assert(0.f <= SHADOW && SHADOW <= HIGHLIGHT && HIGHLIGHT <= 1.f);
@@ -106,21 +106,20 @@ vec3 FragmentShader::cel(const vec3 &pos, const vec3 &normal, const vec2 &uv,
 
     for (auto &light : *lights) {
         vec3 light_dir = (light.pos - pos).normalized();
-        float reflected_intensity =
-            light.intensity / (light.pos - pos).squaredNorm();
+        float intensity = light.intensity / (light.pos - pos).squaredNorm();
+
+        float cos_l = normal.dot(light_dir);
+        if (cos_l < 0.f) continue;
 
         if (material->name == "颜" || material->name == "面1") {
             diffuse_shading +=
-                light.color * ramp_face(reflected_intensity *
-                                        std::max(0.f, normal.dot(light_dir)));
+                light.color * ramp_face(intensity * cos_l / M_PI);
         } else {
-            diffuse_shading +=
-                light.color * ramp(reflected_intensity *
-                                   std::max(0.f, normal.dot(light_dir)));
+            diffuse_shading += light.color * ramp(intensity * cos_l / M_PI);
         }
     }
 
-    return ambient + diffuse_shading.cwiseProduct(diffuse);
+    return (ambient + diffuse_shading.cwiseProduct(diffuse)) * 0.5f;
 }
 
 ///////////
@@ -143,6 +142,13 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
                          ? material->metallic_texture->sample(uv, duv)
                          : material->metallic;
 
+    float occlusion =
+        material->bump_texture ? material->bump_texture->sample(uv, duv) : 1.f;
+
+    if (material->emissive_texture) {
+        shading += material->emissive_texture->sample(uv, duv) * material->ior;
+    }
+
     vec3 view_dir = (eye_pos - pos).normalized();  // shading point -> eye
 
     for (auto &light : *lights) {
@@ -153,17 +159,16 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         vec3 h = (light_dir + view_dir).normalized();  // half vector
 
         float cos_l = normal.dot(light_dir);
-        if (cos_l <= 0.f) continue;
+        if (cos_l <= EPS) continue;
         float cos_v = normal.dot(view_dir);
-        if (cos_v <= 0.f) continue;
-
-        // float r0 = square((1 - material->ior) / (1 + material->ior));
-        float r0 = square((1 - material->ior) / (1 + material->ior));
-        float fresnel = r0 + (1 - r0) * (1 - cos_v);
+        if (cos_v <= EPS) continue;
 
         // Diffuse
 
-        vec3 diffuse = (1.f - fresnel) * base_color / M_PI;
+        float fd90 = 0.5f + 2.f * roughness * square(light_dir.dot(h));
+        vec3 diffuse = base_color / M_PI *
+                       (1.f + (fd90 - 1.f) * std::pow(1.f - cos_l, 5)) *
+                       (1.f + (fd90 - 1.f) * std::pow(1.f - cos_v, 5));
 
         // Specular: Cook-Torrance
 
@@ -181,15 +186,19 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         float g = g1 * g2;
 
         // F: Fresnel
-        vec3 f0 = vec3(r0, r0, r0);
+        vec3 f0 = vec3(fd90, fd90, fd90);
         f0 = (1 - metallic) * f0 + metallic * base_color;
-        vec3 f = f0 + (vec3(1, 1, 1) - f0) * (1 - cos_v);
+        vec3 f = f0 + (vec3(1, 1, 1) - f0) * std::pow(1 - cos_v, 5);
 
         vec3 specular = (d * g * f) / (4 * cos_v * cos_l);
 
         shading +=
             intensity * light.color.cwiseProduct(diffuse + specular) * cos_l;
     }
+
+    shading = shading * (0.5f + 0.5f * occlusion);
+
+    shading = base_color * 0.1f + shading;
 
     return shading;
 }

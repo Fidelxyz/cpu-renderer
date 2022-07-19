@@ -1,0 +1,361 @@
+# Blender MTL File: '晨曦酒庄.blend'
+# Material Count: 28
+
+newmtl 材質1
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+norm Materials/Tex_1/Tex_1_N.png
+map_Kd Textures/Tex_1.png
+map_Pr Materials/Tex_1/Tex_1_S.png
+map_Pm Materials/Tex_1/Tex_1_M.png
+
+newmtl 材質10
+Ns 181.205606
+Ka 0.114896 0.114896 0.114896
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+
+newmtl 材質12
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+norm Materials/Tex_12/Tex_12_N.png
+map_Kd Textures/Tex_12.png
+map_Pm Materials/Tex_12/Tex_12_M.png
+
+newmtl 材質13
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_13/Tex_13_N.png
+map_Kd Textures/Tex_13.png
+map_Pr Materials/Tex_13/Tex_13_S.png
+
+newmtl 材質14
+Ns 181.205606
+Ka 0.114896 0.114896 0.114896
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+
+newmtl 材質16
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_16/Tex_16_N.png
+map_Kd Textures/Tex_16.png
+map_Pr Materials/Tex_16/Tex_16_S.png
+
+newmtl 材質17
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd Textures/Tex_17.png
+
+newmtl 材質18
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_18/Tex_18_N.png
+map_Kd Textures/Tex_18.png
+map_Pr Materials/Tex_18/Tex_18_S.png
+
+newmtl 材質19
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.025000 0.025000 0.025000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_19/Tex_19_N.png
+map_Kd Textures/Tex_19.png
+map_Pr Materials/Tex_19/Tex_19_S.png
+map_Pm Materials/Tex_19/Tex_19_M.png
+
+newmtl 材質2
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.100000 0.100000 0.100000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_2/Tex_2_N.png
+map_Kd Textures/Tex_2.png
+map_Pr Materials/Tex_2/Tex_2_S.png
+map_Pm Materials/Tex_2/Tex_2_M.png
+
+newmtl 材質20
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_20/Tex_20_N.png
+map_Kd Textures/Tex_20.png
+map_Pr Materials/Tex_20/Tex_20_S.png
+map_Pm Materials/Tex_20/Tex_20_M.png
+
+newmtl 材質21
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd Textures/Tex_21.png
+
+newmtl 材質22
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_d Materials/Tex_22/Tex_22_A.png
+
+newmtl 材質23
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+norm Materials/Tex_23/Tex_23_N.png
+map_Kd Textures/Tex_23.png
+map_Pr Materials/Tex_23/Tex_23_S.png
+map_Pm Materials/Tex_23/Tex_23_M.png
+
+newmtl 材質24
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_24/Tex_24_N.png
+map_Kd Textures/Tex_24.png
+map_Pr Materials/Tex_24/Tex_24_S.png
+map_Pm Materials/Tex_24/Tex_24_M.png
+
+newmtl 材質25
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_25/Tex_25_N.png
+map_Kd Textures/Tex_25.png
+map_Pr Materials/Tex_25/Tex_25_S.png
+map_Pm Materials/Tex_25/Tex_25_M.png
+
+newmtl 材質26
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_26/Tex_26_N.png
+map_Kd Textures/Tex_26.png
+map_Pr Materials/Tex_26/Tex_26_S.png
+map_Pm Materials/Tex_26/Tex_26_M.png
+
+newmtl 材質27
+Ns 181.205606
+Ka 0.114896 0.114896 0.114896
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+
+newmtl 材質28
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd Textures/Tex_28.png
+
+newmtl 材質29
+Ns 181.205606
+Ka 0.114896 0.114896 0.114896
+Kd 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 3
+
+newmtl 材質3
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_3/Tex_3_N.png
+map_Kd Textures/Tex_3.png
+map_Pr Materials/Tex_3/Tex_3_S.png
+map_Pm Materials/Tex_3/Tex_3_M.png
+
+newmtl 材質30
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_30/Tex_30_N.png
+map_Kd Textures/Tex_30.png
+map_Pr Materials/Tex_30/Tex_30_S.png
+map_Pm Materials/Tex_30/Tex_30_M.png
+
+newmtl 材質4
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.010000 0.010000 0.010000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_4/Tex_4_N.png
+map_Kd Textures/Tex_4.png
+map_Pm Materials/Tex_4/Tex_4_M.png
+
+newmtl 材質5
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+norm Materials/Tex_9/Tex_9_N.png
+map_Kd Textures/Tex_5.png
+map_Pr Materials/Tex_9/Tex_9_S.png
+map_Pm Materials/Tex_9/Tex_9_M.png
+
+newmtl 材質6
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.002000 0.002000 0.002000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_6/Tex_6_N.png
+map_Kd Textures/Tex_6.png
+map_Pr Materials/Tex_6/Tex_6_S.png
+map_Pm Materials/Tex_6/Tex_6_M.png
+
+newmtl 材質7
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.002000 0.002000 0.002000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm -bm 2.000000 Materials/Tex_7/Tex_7_N.png
+map_Kd Textures/Tex_7.png
+map_Pr Materials/Tex_7/Tex_7_S.png
+map_Pm Materials/Tex_7/Tex_7_M.png
+
+newmtl 材質8
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.003000 0.003000 0.003000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_8/Tex_8_N.png
+map_Kd Textures/Tex_8.png
+map_Pr Materials/Tex_8/Tex_8_S.png
+map_Pm Materials/Tex_8/Tex_8_M.png
+
+newmtl 材質9
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.005000 0.005000 0.005000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+norm Materials/Tex_9/Tex_9_N.png
+map_Kd Textures/Tex_9.png
+map_Pr Materials/Tex_9/Tex_9_S.png
+map_Pm Materials/Tex_9/Tex_9_M.png

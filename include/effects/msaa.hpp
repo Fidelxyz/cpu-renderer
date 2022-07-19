@@ -69,7 +69,4 @@ static const vec2 samples_coord_delta[MSAA_LEVEL] = {
 
 }  // namespace msaa
 
-using frame_buffer_t = Texture<std::array<vec3, msaa::MSAA_LEVEL>>;
-using z_buffer_t = Texture<std::array<float, msaa::MSAA_LEVEL>>;
-
 #endif

@@ -31,21 +31,16 @@ Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
 void Object::do_model_transform() {
     // vertex
     for (auto& vertex : vertices) {
-        vec4d pos = model_transform.transform(
-            vec4d(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
-        vertex->pos =
-            (vec3d(pos.x(), pos.y(), pos.z()) / pos.w()).cast<float>();
+        vec4 pos = model_transform.transform(
+            vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
+        vertex->pos = (vec3(pos.x(), pos.y(), pos.z()) / pos.w());
         vertex->normal =
-            normal_transform.transform(vertex->normal.cast<double>())
-                .normalized()
-                .cast<float>();
+            normal_transform.transform(vertex->normal).normalized();
     }
 
     // normal
     for (auto& normal : normals) {
-        *normal = normal_transform.transform(normal->cast<double>())
-                      .normalized()
-                      .cast<float>();
+        *normal = normal_transform.transform(*normal).normalized();
     }
 }
 
@@ -130,9 +125,13 @@ bool Object::load_model(const std::string& filename,
             material->specular_texture =
                 load_mipmap<vec3>(t_material.specular_texname, basepath, false);
 
+        if (!t_material.bump_texname.empty())
+            material->bump_texture =
+                load_mipmap<float>(t_material.bump_texname, basepath, true);
+
         if (!t_material.alpha_texname.empty()) {
             material->alpha_texture =
-                load_mipmap_alpha(t_material.alpha_texname, basepath);
+                load_texture_alpha(t_material.alpha_texname, basepath);
         }
 
         // material.specular_highlight_texname =
@@ -149,10 +148,12 @@ bool Object::load_model(const std::string& filename,
         // material.anisotropy = t_material.anisotropy;
         // material.anisotropy_rotation = t_material.anisotropy_rotation;
 
-        // material.emissive_texname = t_material.emissive_texname;
-        // material.roughness_texname = t_material.roughness_texname;
-        // material.metallic_texname = t_material.metallic_texname;
         // material.sheen_texname = t_material.sheen_texname;
+
+        if (!t_material.emissive_texname.empty()) {
+            material->emissive_texture =
+                load_mipmap<vec3>(t_material.emissive_texname, basepath, false);
+        }
 
         if (!t_material.roughness_texname.empty()) {
             material->roughness_texture = load_mipmap<float>(

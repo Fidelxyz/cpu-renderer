@@ -15,6 +15,8 @@
 
 class Object {
    public:
+    std::string shading_type = "default";
+
     PositionTransform model_transform;
     NormalTransform normal_transform;
 

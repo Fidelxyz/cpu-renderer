@@ -15,8 +15,14 @@ class Scene {
 
     Camera camera;
 
+    // global config
     vec3 background_color = vec3(0, 0, 0);
     bool enable_rimlight = false;
+
+    bool enable_bloom = false;
+    float bloom_strength;
+    float bloom_radius;
+    int bloom_iteration;
 };
 
 #endif

@@ -4,17 +4,19 @@
 #include <Eigen/Dense>
 #include <cmath>
 
-////////////////////
-// NormalTransform
-////////////////////
+////////////////////////
+// DirectionTransform //
+////////////////////////
 
-NormalTransform::NormalTransform() { matrix = Eigen::Matrix3d::Identity(); }
+DirectionTransform::DirectionTransform() {
+    matrix = Eigen::Matrix3f::Identity();
+}
 
-vec3d NormalTransform::transform(const vec3d &pos) const {
+vec3 DirectionTransform::transform(const vec3 &pos) const {
     return matrix * pos;
 }
 
-void NormalTransform::rotation(const vec3 &angle_deg) {
+void DirectionTransform::rotation(const vec3 &angle_deg) {
     vec3 angle_arc = angle_deg * M_PI / 180.f;
     float sin_x = std::sin(angle_arc.x());
     float sin_y = std::sin(angle_arc.y());
@@ -23,7 +25,7 @@ void NormalTransform::rotation(const vec3 &angle_deg) {
     float cos_y = std::cos(angle_arc.y());
     float cos_z = std::cos(angle_arc.z());
 
-    mat3d rot_x, rot_y, rot_z;
+    mat3 rot_x, rot_y, rot_z;
     // clang-format off
     rot_x << 1, 0,     0,    
              0, cos_x, -sin_x,
@@ -37,13 +39,17 @@ void NormalTransform::rotation(const vec3 &angle_deg) {
              sin_z, cos_z,  0,
              0,     0,      1;
     // clang-format on
-    mat3d rot_matrix = rot_z * rot_y * rot_x;
+    mat3 rot_matrix = rot_z * rot_y * rot_x;
 
     matrix = rot_matrix * matrix;
 }
 
+/////////////////////
+// NormalTransform //
+/////////////////////
+
 void NormalTransform::scale(const vec3 &factor) {
-    mat3d scale_matrix;
+    mat3 scale_matrix;
     // clang-format off
     scale_matrix << factor.x(), 0, 0,
                     0, factor.y(), 0,
@@ -54,18 +60,18 @@ void NormalTransform::scale(const vec3 &factor) {
     matrix = scale_matrix.inverse().transpose() * matrix;
 }
 
-////////////////////
-// PositionTransform
-////////////////////
+///////////////////////
+// PositionTransform //
+///////////////////////
 
-PositionTransform::PositionTransform() { matrix = Eigen::Matrix4d::Identity(); }
+PositionTransform::PositionTransform() { matrix = Eigen::Matrix4f::Identity(); }
 
-vec4d PositionTransform::transform(const vec4d &pos) const {
+vec4 PositionTransform::transform(const vec4 &pos) const {
     return matrix * pos;
 }
 
 void PositionTransform::translation(const vec3 &dist) {
-    mat4d trans_matrix;
+    mat4 trans_matrix;
     // clang-format off
     trans_matrix << 1, 0, 0, dist.x(),
                     0, 1, 0, dist.y(),
@@ -85,7 +91,7 @@ void PositionTransform::rotation(const vec3 &angle_deg) {
     float cos_y = std::cos(angle_arc.y());
     float cos_z = std::cos(angle_arc.z());
 
-    mat4d rot_x, rot_y, rot_z;
+    mat4 rot_x, rot_y, rot_z;
     // clang-format off
     rot_x << 1, 0,     0,      0,
              0, cos_x, -sin_x, 0,
@@ -102,13 +108,13 @@ void PositionTransform::rotation(const vec3 &angle_deg) {
              0,     0,      1, 0,
              0,     0,      0, 1;
     // clang-format on
-    mat4d rot_matrix = rot_z * rot_y * rot_x;
+    mat4 rot_matrix = rot_z * rot_y * rot_x;
 
     matrix = rot_matrix * matrix;
 }
 
 void PositionTransform::scale(const vec3 &factor) {
-    mat4d scale_matrix;
+    mat4 scale_matrix;
     // clang-format off
     scale_matrix << factor.x(), 0, 0, 0,
                     0, factor.y(), 0, 0,
@@ -122,12 +128,11 @@ void PositionTransform::scale(const vec3 &factor) {
 void PositionTransform::world_to_view(const Camera &camera) {
     // orthogonalization
     vec3 look_dir = camera.look_dir;
-    vec3 up_dir =
-        (camera.up_dir - camera.up_dir.dot(look_dir) * look_dir).normalized();
-    vec3 left_dir = camera.up_dir.cross(camera.look_dir);
+    vec3 up_dir = camera.up_dir;
+    vec3 left_dir = up_dir.cross(look_dir);
 
-    mat4d view_translation;
-    mat4d view_rotation;
+    mat4 view_translation;
+    mat4 view_rotation;
 
     // clang-format off
     view_translation << 1, 0, 0, -camera.pos.x(),
@@ -151,7 +156,7 @@ void PositionTransform::view_to_ndc(const Camera &camera) {
     float n = camera.near_plane;
     float f = camera.far_plane;
 
-    mat4d projection_matrix;
+    mat4 projection_matrix;
 
     // clang-format off
     projection_matrix << n / r, 0, 0, 0,
@@ -171,7 +176,7 @@ void PositionTransform::ndc_to_screen(const Camera &camera) {
     float screen_scale_x = static_cast<float>(camera.width) / 2.f;
     float screen_scale_y = static_cast<float>(camera.height) / 2.f;
 
-    mat4d screen_transform;
+    mat4 screen_transform;
 
     // clang-format off
     screen_transform << screen_scale_x, 0, 0, screen_scale_x,

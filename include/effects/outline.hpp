@@ -9,7 +9,7 @@
 #include "shader/vertex_shader.hpp"
 
 namespace outline {
-const float OUTLINE_WIDTH = 0.001;
+const float OUTLINE_WIDTH = 0.002;
 const vec3 OUTLINE_COLOR = vec3(0, 0, 0);
 
 // Object outline_geometry(const Object &object, const Camera &camera);

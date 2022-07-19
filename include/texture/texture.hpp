@@ -23,6 +23,7 @@ class Texture {
     Texture(const size_t width, const size_t height);
     Texture(const size_t width, const size_t height, const T init_val);
     Texture(Texture &&src);
+    Texture(const Texture &src);
     ~Texture();
 
     T *begin() const;
@@ -51,6 +52,7 @@ class Texture {
     static vec3 truncate_color(const vec3 &color);
 
     T sample(const vec2 &uv) const;
+    T sample_no_repeat(const vec2 &uv) const;
 };
 
 template <typename T>
@@ -82,6 +84,14 @@ Texture<T>::Texture(Texture &&src) {
 }
 
 template <typename T>
+Texture<T>::Texture(const Texture &src) : Texture(src.width, src.height) {
+#pragma omp parallel for
+    for (size_t i = 0; i < width * height; i++) {
+        this->data[i] = src.data[i];
+    }
+}
+
+template <typename T>
 Texture<T>::~Texture() {
     delete[] data;
 }
@@ -100,6 +110,7 @@ template <typename T>
 Texture<T> &Texture<T>::operator=(Texture &&src) {
     width = std::move(src.width);
     height = std::move(src.height);
+    delete[] data;
     data = std::move(src.data);
     src.data = nullptr;
     return *this;
@@ -227,7 +238,7 @@ void Texture<T>::read_alpha(const std::string &filename) {
 }
 
 template <typename T>
-T Texture<T>::sample(const vec2 &uv) const {
+T Texture<T>::sample_no_repeat(const vec2 &uv) const {
     float x = uv.x() * static_cast<float>(width);
     float y = (1.f - uv.y()) * static_cast<float>(height);
 
@@ -255,6 +266,12 @@ T Texture<T>::sample(const vec2 &uv) const {
 }
 
 template <typename T>
+T Texture<T>::sample(const vec2 &uv) const {
+    return sample_no_repeat(
+        vec2(uv.x() - std::floor(uv.x()), uv.y() - std::floor(uv.y())));
+}
+
+template <typename T>
 float Texture<T>::gamma_correction(const float val, const float gamma) {
     return std::pow(val, gamma);
 }
@@ -268,7 +285,7 @@ vec3 Texture<T>::gamma_correction(const vec3 &val, const float gamma) {
 
 template <typename T>
 float Texture<T>::truncate_color(float color) {
-    color = std::min(color, 1.f);
+    color = std::min(color, 1.f - EPS);
     // color = std::max(color, 0.f);
     return color;
 }

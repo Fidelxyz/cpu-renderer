@@ -1,82 +1,104 @@
 objects:
-  # - path: ../example/models/bunny/bunny.obj
-  #   basepath: ../example/models/bunny/
-  #   pos: [0, -0.1, 0]
-  #   rotation: [0, 180, 0]
-  #   scale: [1, 1, 1]
-  #   material:
-  #     ambient: [0.05, 0.05, 0.05]
-  #     specular: [0.5, 0.5, 0.5]
-  #     diffuse: [0.1, 0.1, 0.1]
-  #     shininess: 20.0
-
-  # - path: ../example/models/spot/spot_triangulated_good.obj
-  #   basepath: ../example/models/spot/
-  #   pos: [0, -0.01, 0]
-  #   rotation: [0, 45, 0]
-  #   scale: [0.1, 0.1, 0.1]
-  #   material:
-  #     ambient: [0.05, 0.05, 0.05]
-  #     shininess: 20.0
-  #     diffuse-texname: spot_texture.png
-  #     # specular-texname: spot_texture.png
-
-  # - path: ../example/models/keqing/keqing.obj
-  #   basepath: ../example/models/keqing/
-  #   pos: [0, -0.08, -0.1]
-  #   rotation: [0, 150, 0]
-  #   scale: [0.1, 0.1, 0.1]
-
-  # - path: ../example/models/aether/aether.obj
-  #   basepath: ../example/models/aether/
-  #   pos: [0, -0.08, -0.1]
-  #   rotation: [0, 150, 0]
-  #   scale: [0.1, 0.1, 0.1]
-
-  - path: ../example/models/cube/cube.obj
-    basepath: ../example/models/cube/
+  - path: ../example/models/aether/aether.obj
+    basepath: ../example/models/aether/
     pos: [0, 0, 0]
-    rotation: [-45, -30, -45]
-    scale: [1, 1, 1]
+    rotation: [0, 0, 0]
+    scale: [0.3, 0.3, 0.3]
+    shading-type: cel
+
+  - path: ../example/models/scene2-pbr/scene2.obj
+    basepath: ../example/models/scene2-pbr/
+    pos: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [0.1, 0.1, 0.1]
     shading-type: pbr
-    # material:
-    #   ior: 1.4
-    #   diffuse: [0.5, 0.5, 0.5]
-    #   roughness: 0.3
-    #   metallic: 0.8
 
 lights:
-  # - pos: [2.0, 1.0, -0.5]
-  #   color: [0.5, 0.5, 1.0]  # blue
-  #   intensity: 1
-  # - pos: [-2.0, 0.0, -1.0]
-  #   color: [1, 0.5, 0.5]  # red
-  #   intensity: 1
-  - pos: [-0.5, 0.5, -0.5]
-    color: [1, 1, 1]
-    intensity: 5
-  
-# camera:
-#   pos: [0, 0, -4]
-#   look-dir: [0.0, 0.0, 1.0]
-#   up-dir: [0.0, -1.0, 0.0]
-#   fov: 60.0
-#   near-plane: 0.01
-#   far-plane: 300.0
-#   width: 2000
-#   height: 2000
+  - pos: [-0.314327, 0.0211149, 0.291972]  # 1OF4
+    color: [1, 0.342, 0.080]
+    intensity: 0.025
+  - pos: [-0.308932, 0.0211149, -0.34572]  # 2OF4
+    color: [1, 0.342, 0.080]
+    intensity: 0.025
+  - pos: [0.309784, 0.0211149, -0.34572]  # 3OF4
+    color: [1, 0.342, 0.080]
+    intensity: 0.025
+  - pos: [0.318571, 0.0211149, 0.291972]  # 4OF4
+    color: [1, 0.342, 0.080]
+    intensity: 0.025
+  - pos: [0.573793, 0.345368, 0.0029171]  # 001
+    color: [1, 0.342, 0.080]
+    intensity: 0.225
+  - pos: [0.573535, 0.27362, -0.568453]  # 002
+    color: [1, 0.342, 0.080]
+    intensity: 0.125
+  - pos: [-0.0139909, 0.330893, -0.639493]  # 003
+    color: [1, 0.342, 0.080]
+    intensity: 0.2
+  - pos: [0.936185, 0.434464, -0.200099]  # 右1
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [0.936185, 0.434464, 0.144397]  # 右2
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  # - pos: [1.39941, 0.434464, -0.0456069]  # 右里
+  #   color: [1, 0.342, 0.080]
+  #   intensity: 0.09
+  - pos: [-0.924984, 0.434464, -0.202398]  # 左1
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [-0.924984, 0.434464, 0.144397]  # 左2
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  # - pos: [-1.48634, 0.434464, -0.0336365]  # 左里
+  #   color: [1, 0.342, 0.080]
+  #   intensity: 0.09
+  - pos: [-0.308989, 0.20654, -0.537465]  # 灯1
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [0.306393, 0.20654, -0.534618]  # 灯2
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [-0.0522837, 1.74318, 0.298014]  # Point 顶
+    color: [1, 0.342, 0.080]
+    intensity: 0.15
+  # - pos: [0.0187532, 0.386452, 1.05258]  # 后 氛围灯
+  #   color: [1, 0.342, 0.080]
+  #   intensity: 0.25
+  - pos: [0.368774, 0.450211, 1.05258]  # 后1
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [-0.369694, 0.450211, 1.05258]  # 后2
+    color: [1, 0.342, 0.080]
+    intensity: 0.04
+  - pos: [-0.0220885, 2.20308, 0.8223]  # Area
+    color: [0.35, 0.45, 0.8]
+    intensity: 1
+  - pos: [1.50691, 2.20308, 0.0650828]  # Area.001
+    color: [0.35, 0.45, 0.8]
+    intensity: 1
+  - pos: [-1.33519, 2.85478, -0.75962]  # Area.002
+    color: [0.35, 0.45, 0.8]
+    intensity: 2.5
 
 camera:
-  pos: [-0.4, 0.2, -1]
-  look-dir: [0.0, 0.2, -1.0]
-  up-dir: [0.0, 1.0, 0.0]
+  pos: [0.823831, 0.426397, 1.39162]
+  rotation: [0, -150, 0]
   fov: 60.0
   near-plane: 0.1
-  far-plane: 5.0
+  far-plane: 10.0
   width: 1920
   height: 1080
-  relax-view-culling-factor: 5
+  view-culling-min-w: 0.001
 
 threads-num: 8
-background-color: [0, 0, 0]
-enable-rimlight: false
+background-color: [0.01, 0.01, 0.08]
+
+rimlight:
+  enable: false
+
+bloom:
+  enable: true
+  strength: 0.2
+  radius: 4.0
+  iteration: 3

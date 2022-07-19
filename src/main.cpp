@@ -6,9 +6,11 @@
 #include <memory>
 
 #include "config.hpp"
+#include "effects/bloom.hpp"
 #include "effects/msaa.hpp"
 #include "effects/outline.hpp"
 #include "effects/rimlight.hpp"
+#include "effects/ssao.hpp"
 #include "geometry/object.hpp"
 #include "global.hpp"
 #include "light/light.hpp"
@@ -16,6 +18,7 @@
 #include "scene/scene.hpp"
 #include "shader/fragment_shader.hpp"
 #include "shader/vertex_shader.hpp"
+#include "texture/buffer.hpp"
 #include "texture/texture.hpp"
 #include "utils/progress_bar.hpp"
 #include "utils/timer.hpp"
@@ -35,17 +38,36 @@ void render(Scene &scene) {
         }
     }
 
-    Texture<std::array<float, msaa::MSAA_LEVEL>> z_buffer(
-        scene.camera.width, scene.camera.height, msaa::texture_init_val(1.f));
+    Buffer buffer;
 
-    Texture<std::array<vec3, msaa::MSAA_LEVEL>> frame_buffer(
-        scene.camera.width, scene.camera.height,
-        msaa::texture_init_val(scene.background_color));
+    {
+        Timer timer("Initialize buffer");
 
-    // init mutex
-    Texture<omp_lock_t> mutex(scene.camera.width, scene.camera.height);
-    for (auto &m : mutex) {
-        omp_init_lock(&m);
+        // init mutex
+        buffer.mutex = std::make_shared<Texture<omp_lock_t>>(
+            scene.camera.width, scene.camera.height);
+        for (auto &m : *buffer.mutex) {
+            omp_init_lock(&m);
+        }
+
+        buffer.z_buffer = std::make_shared<z_buffer_t>(
+            scene.camera.width, scene.camera.height,
+            msaa::texture_init_val(1.f));
+
+        buffer.frame_buffer = std::make_shared<frame_buffer_t>(
+            scene.camera.width, scene.camera.height,
+            msaa::texture_init_val(scene.background_color));
+
+        buffer.pos_buffer = std::make_shared<msaa_texture_t<vec3>>(
+            scene.camera.width, scene.camera.height,
+            msaa::texture_init_val(vec3(0, 0, 0)));
+
+        buffer.normal_buffer = std::make_shared<msaa_texture_t<vec3>>(
+            scene.camera.width, scene.camera.height,
+            msaa::texture_init_val(vec3(0, 0, 0)));
+
+        buffer.full_covered = std::make_shared<Texture<bool>>(
+            scene.camera.width, scene.camera.height, true);
     }
 
     {
@@ -55,8 +77,7 @@ void render(Scene &scene) {
             for (auto &shape : object.shapes) {
 #pragma omp parallel for
                 for (auto &triangle : shape.triangles) {
-                    triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
-                                       &fragment_shader, scene.camera,
+                    triangle.rasterize(&buffer, &fragment_shader, scene.camera,
                                        Triangle::CULL_BACK);
                 }
                 progress.update();
@@ -64,41 +85,53 @@ void render(Scene &scene) {
         }
     }
 
-    //     {
-    //         Timer timer("Outline pass");
-    //         auto outline_vertex_shader =
-    //         outline::OutlineVertexShader(scene.camera); auto
-    //         outline_fragment_shader =
-    //             outline::OutlineFragmentShader(scene.camera);
+    {
+        Timer timer("Outline pass");
+        auto outline_vertex_shader = outline::OutlineVertexShader(scene.camera);
+        auto outline_fragment_shader =
+            outline::OutlineFragmentShader(scene.camera);
 
-    //         for (auto &object : scene.objects) {
-    // #pragma omp parallel for
-    //             for (auto &vertex : object.vertices) {
-    //                 outline_vertex_shader.shade(vertex.get());
-    //                 vertex_shader.shade(vertex.get());
-    //             }
+        for (auto &object : scene.objects) {
+            if (object.shading_type != "cel") continue;
+#pragma omp parallel for
+            for (auto &vertex : object.vertices) {
+                outline_vertex_shader.shade(vertex.get());
+                vertex_shader.shade(vertex.get());
+            }
 
-    //             for (auto &shape : object.shapes) {
-    // #pragma omp parallel for
-    //                 for (auto &triangle : shape.triangles) {
-    //                     triangle.rasterize(&mutex, &frame_buffer, &z_buffer,
-    //                                        &outline_fragment_shader,
-    //                                        scene.camera,
-    //                                        Triangle::CULL_FRONT);
-    //                 }
-    //             }
-    //         }
-    //     }
+            for (auto &shape : object.shapes) {
+#pragma omp parallel for
+                for (auto &triangle : shape.triangles) {
+                    triangle.rasterize(&buffer, &outline_fragment_shader,
+                                       scene.camera, Triangle::CULL_FRONT);
+                }
+            }
+        }
+    }
 
     if (scene.enable_rimlight) {
         Timer timer("Rimlight");
-        rimlight::rimlight(&frame_buffer, z_buffer, scene.camera);
+        rimlight::rimlight(&buffer, scene.camera);
     }
 
     Texture<vec3> frame_result;
     {
-        Timer timer("MSAA Filter");
-        frame_result = msaa::msaa_filter(frame_buffer);
+        Timer timer("MSAA filter");
+        frame_result = msaa::msaa_filter(*buffer.frame_buffer);
+    }
+
+    {
+        Timer timer("SSAO filter");
+        Texture<float> z_buffer_result = msaa::msaa_filter(*buffer.z_buffer);
+        frame_result = ssao::ssao_filter(&buffer, frame_result, z_buffer_result,
+                                         &vertex_shader);
+    }
+
+    {
+        Timer timer("Bloom filter");
+        frame_result =
+            bloom::bloom_filter(frame_result, scene.bloom_strength,
+                                scene.bloom_radius, scene.bloom_iteration);
     }
 
     {
@@ -107,7 +140,7 @@ void render(Scene &scene) {
     }
 
     // destroy mutex
-    for (auto &m : mutex) {
+    for (auto &m : *buffer.mutex) {
         omp_destroy_lock(&m);
     }
 }
