@@ -8,6 +8,7 @@
 #include "geometry/vertex.hpp"
 #include "global.hpp"
 #include "scene/material.hpp"
+#include "utils/functions.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -94,19 +95,25 @@ bool Object::load_model(const std::string& filename,
 
         material->name = t_material.name;
 
-        material->ambient = vec3(t_material.ambient[0], t_material.ambient[1],
-                                 t_material.ambient[2]);
-        material->diffuse = vec3(t_material.diffuse[0], t_material.diffuse[1],
-                                 t_material.diffuse[2]);
-        material->specular =
+        material->ambient =
+            gamma_correction(vec3(t_material.ambient[0], t_material.ambient[1],
+                                  t_material.ambient[2]),
+                             2.2f);
+        material->diffuse =
+            gamma_correction(vec3(t_material.diffuse[0], t_material.diffuse[1],
+                                  t_material.diffuse[2]),
+                             2.2f);
+        material->specular = gamma_correction(
             vec3(t_material.specular[0], t_material.specular[1],
-                 t_material.specular[2]);
-        material->transmittance =
-            vec3(t_material.transmittance[0], t_material.transmittance[1],
-                 t_material.transmittance[2]);
-        material->emission =
+                 t_material.specular[2]),
+            2.2f);
+        // material->transmittance =
+        //     vec3(t_material.transmittance[0], t_material.transmittance[1],
+        //          t_material.transmittance[2]);
+        material->emission = gamma_correction(
             vec3(t_material.emission[0], t_material.emission[1],
-                 t_material.emission[2]);
+                 t_material.emission[2]),
+            2.2f);
 
         material->shininess = t_material.shininess;
         material->ior = t_material.ior;

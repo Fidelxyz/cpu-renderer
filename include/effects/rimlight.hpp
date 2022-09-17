@@ -14,7 +14,7 @@ namespace rimlight {
 
 // delta_x, delta_y, intensity
 const std::vector<std::tuple<size_t, size_t, float>> RIMLIGHT_DELTA = {
-    {-10, 0, 1.5}, {10, 0, 1.5}};
+    {-8, 0, 1.2}, {8, 0, 1.2}};
 
 float calc_depth(const vec3 &pos, const Camera &camera) {
     return (pos - camera.pos).norm();

@@ -149,7 +149,13 @@ int main(int argc, char *argv[]) {
     auto scene = Scene();
     {
         Timer timer("Load");
-        auto config = Config("../example/config.yaml");
+        std::string config_path;
+        if (argc == 1) {
+            config_path = "../example/default-config.yaml";
+        } else {
+            config_path = argv[1];
+        }
+        auto config = Config(config_path);
 
         // load threads_num
         int threads_num;

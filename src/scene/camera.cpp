@@ -6,7 +6,7 @@ Camera::Camera() {}
 
 Camera::Camera(const vec3 &pos, const vec3 &rotation, const float fov,
                const float near_plane, const float far_plane, const int width,
-               const int height, const float view_culling_min_w) {
+               const int height) {
     this->pos = pos;
     this->fov = fov;
     this->near_plane = near_plane;
@@ -14,7 +14,6 @@ Camera::Camera(const vec3 &pos, const vec3 &rotation, const float fov,
     this->width = width;
     this->height = height;
     this->aspect = static_cast<float>(width) / static_cast<float>(height);
-    this->view_culling_min_w = view_culling_min_w;
 
     DirectionTransform direction_transform;
     direction_transform.rotation(rotation);

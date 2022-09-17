@@ -1,10 +1,10 @@
 objects:
-  - path: ../example/models/aether/aether.obj
-    basepath: ../example/models/aether/
-    pos: [0, 0, 0]
-    rotation: [0, 0, 0]
-    scale: [0.3, 0.3, 0.3]
-    shading-type: cel
+  # - path: ../example/models/aether/aether.obj
+  #   basepath: ../example/models/aether/
+  #   pos: [0, 0, 0]
+  #   rotation: [0, 0, 0]
+  #   scale: [0.3, 0.3, 0.3]
+  #   shading-type: cel
 
   - path: ../example/models/scene2-pbr/scene2.obj
     basepath: ../example/models/scene2-pbr/
@@ -16,16 +16,16 @@ objects:
 lights:
   - pos: [-0.314327, 0.0211149, 0.291972]  # 1OF4
     color: [1, 0.342, 0.080]
-    intensity: 0.025
+    intensity: 0.05
   - pos: [-0.308932, 0.0211149, -0.34572]  # 2OF4
     color: [1, 0.342, 0.080]
-    intensity: 0.025
+    intensity: 0.05
   - pos: [0.309784, 0.0211149, -0.34572]  # 3OF4
     color: [1, 0.342, 0.080]
-    intensity: 0.025
+    intensity: 0.05
   - pos: [0.318571, 0.0211149, 0.291972]  # 4OF4
     color: [1, 0.342, 0.080]
-    intensity: 0.025
+    intensity: 0.05
   - pos: [0.573793, 0.345368, 0.0029171]  # 001
     color: [1, 0.342, 0.080]
     intensity: 0.225
@@ -89,10 +89,9 @@ camera:
   far-plane: 10.0
   width: 1920
   height: 1080
-  view-culling-min-w: 0.001
 
 threads-num: 8
-background-color: [0.01, 0.01, 0.08]
+background-color: [0.08, 0.08, 0.25]
 
 rimlight:
   enable: false

@@ -17,7 +17,7 @@ class Material {
     vec3 ambient = vec3(0, 0, 0);
     vec3 diffuse = vec3(0, 0, 0);
     vec3 specular = vec3(0, 0, 0);
-    vec3 transmittance = vec3(0, 0, 0);
+    // vec3 transmittance = vec3(0, 0, 0);
     vec3 emission = vec3(0, 0, 0);
     float shininess = 0;
     float ior = 0;

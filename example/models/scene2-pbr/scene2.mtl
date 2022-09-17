@@ -311,13 +311,14 @@ bump Tex/Tex_0017_A2.png
 
 newmtl 材質35
 Kd 0.800000 0.800000 0.800000
-Ni 5.000000
+Ni 0.300000
 Pr 1.000000
 Pm 0.000000
 d 1.000000
 illum 1
 map_Kd Tex/Tex_0001.png
 map_d Tex/Tex_0001.png
+map_Ke Tex/Tex_0001.png
 
 newmtl 材質36
 Kd 1.000000 1.000000 1.000000

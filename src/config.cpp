@@ -7,6 +7,7 @@
 #include "global.hpp"
 #include "scene/camera.hpp"
 #include "scene/material.hpp"
+#include "utils/functions.hpp"
 
 Config::Config(const std::string &filename) {
     std::cout << "Load scene from config: " << filename << std::endl;
@@ -109,9 +110,10 @@ bool Config::load_scene(Scene *scene) const {
 
     // lights
     for (auto yaml_light : yaml_config["lights"]) {
-        scene->lights.emplace_back(to_vector(yaml_light["pos"]),
-                                   to_vector(yaml_light["color"]),
-                                   yaml_light["intensity"].as<float>());
+        scene->lights.emplace_back(
+            to_vector(yaml_light["pos"]),
+            gamma_correction(to_vector(yaml_light["color"]), 2.2f),
+            yaml_light["intensity"].as<float>());
     }
 
     // camera
@@ -121,12 +123,12 @@ bool Config::load_scene(Scene *scene) const {
         yaml_camera["fov"].as<float>() * M_PI / 180.f,
         yaml_camera["near-plane"].as<float>(),
         yaml_camera["far-plane"].as<float>(), yaml_camera["width"].as<int>(),
-        yaml_camera["height"].as<int>(),
-        yaml_camera["view-culling-min-w"].as<float>());
+        yaml_camera["height"].as<int>());
 
     // other
     if (yaml_config["background-color"])
-        scene->background_color = to_vector(yaml_config["background-color"]);
+        scene->background_color =
+            gamma_correction(to_vector(yaml_config["background-color"]), 2.2f);
 
     if (yaml_config["rimlight"]) {
         scene->enable_rimlight = yaml_config["rimlight"]["enable"].as<bool>();

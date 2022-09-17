@@ -8,6 +8,7 @@
 #include <string>
 
 #include "global.hpp"
+#include "utils/functions.hpp"
 
 template <typename T>
 class Texture {
@@ -44,9 +45,6 @@ class Texture {
     void write_img(const std::string &filename, const bool linear) const;
 
     void read_alpha(const std::string &filename);
-
-    static float gamma_correction(const float val, const float gamma);
-    static vec3 gamma_correction(const vec3 &val, const float gamma);
 
     static float truncate_color(float color);
     static vec3 truncate_color(const vec3 &color);
@@ -239,22 +237,23 @@ void Texture<T>::read_alpha(const std::string &filename) {
 
 template <typename T>
 T Texture<T>::sample_no_repeat(const vec2 &uv) const {
-    float x = uv.x() * static_cast<float>(width);
-    float y = (1.f - uv.y()) * static_cast<float>(height);
+    // (x + 0.5, y + 0.5) = (u, v)
+    float x = uv.x() * static_cast<float>(width) - 0.5f;
+    float y = (1.f - uv.y()) * static_cast<float>(height) - 0.5f;
 
     // truncate uv
-    x = std::max(x, 0.5f + EPS);
-    x = std::min(x, width - (0.5f + EPS));
-    y = std::max(y, 0.5f + EPS);
-    y = std::min(y, height - (0.5f + EPS));
+    x = std::max(x, EPS);
+    x = std::min(x, width - 1.f - EPS);
+    y = std::max(y, EPS);
+    y = std::min(y, height - 1.f - EPS);
 
-    int xl = std::floor(x - 0.5f);
+    int xl = std::floor(x);
     int xr = xl + 1;
-    int yl = std::floor(y - 0.5f);
+    int yl = std::floor(y);
     int yr = yl + 1;
-
-    float wx = x - (xl + 0.5f);
-    float wy = y - (yl + 0.5f);
+    
+    float wx = x - xl;
+    float wy = y - yl;
 
     T sample_xlyl = at(xl, yl);
     T sample_xlyr = at(xl, yr);
@@ -269,18 +268,6 @@ template <typename T>
 T Texture<T>::sample(const vec2 &uv) const {
     return sample_no_repeat(
         vec2(uv.x() - std::floor(uv.x()), uv.y() - std::floor(uv.y())));
-}
-
-template <typename T>
-float Texture<T>::gamma_correction(const float val, const float gamma) {
-    return std::pow(val, gamma);
-}
-
-template <typename T>
-vec3 Texture<T>::gamma_correction(const vec3 &val, const float gamma) {
-    return vec3(gamma_correction(val.x(), gamma),
-                gamma_correction(val.y(), gamma),
-                gamma_correction(val.z(), gamma));
 }
 
 template <typename T>

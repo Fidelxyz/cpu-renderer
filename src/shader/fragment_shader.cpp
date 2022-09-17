@@ -59,13 +59,13 @@ vec3 FragmentShader::blinn_phong(const vec3 &pos, const vec3 &normal,
 ///////////////////
 
 float ramp(const float x) {
-    constexpr float STEP1 = 0.3;
-    constexpr float STEP2 = 0.7;
-    constexpr float SMOTHNESS1 = 0.3;
+    constexpr float STEP1 = 0.4;
+    constexpr float STEP2 = 0.9;
+    constexpr float SMOTHNESS1 = 0.05;
     constexpr float SMOTHNESS2 = 0.1;
     constexpr float SHADOW = 0.3;
-    constexpr float GAMMA = 0.5;
-    constexpr float HIGHLIGHT = 0.7;
+    constexpr float GAMMA = 0.6;
+    constexpr float HIGHLIGHT = 0.8;
 
     static_assert(0.f <= STEP1 && STEP1 <= STEP2 && STEP2 <= 1.f);
     static_assert(0.f <= SHADOW && SHADOW <= GAMMA && GAMMA <= HIGHLIGHT &&
@@ -81,8 +81,8 @@ float ramp(const float x) {
 float ramp_face(const float x) {
     constexpr float STEP = 0.4;
     constexpr float SMOTHNESS = 0.05;
-    constexpr float SHADOW = 0.5;
-    constexpr float HIGHLIGHT = 0.7;
+    constexpr float SHADOW = 0.4;
+    constexpr float HIGHLIGHT = 0.8;
 
     static_assert(0.f <= STEP && STEP <= 1.f);
     static_assert(0.f <= SHADOW && SHADOW <= HIGHLIGHT && HIGHLIGHT <= 1.f);
@@ -111,13 +111,17 @@ vec3 FragmentShader::cel(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         float cos_l = normal.dot(light_dir);
         if (cos_l < 0.f) continue;
 
-        if (material->name == "颜" || material->name == "面1") {
-            diffuse_shading +=
-                light.color * ramp_face(intensity * cos_l / M_PI);
-        } else {
-            diffuse_shading += light.color * ramp(intensity * cos_l / M_PI);
-        }
+        diffuse_shading += light.color * intensity * cos_l / M_PI;
     }
+
+    float lighting_luminance = std::min(luminance(diffuse_shading), 1.f);
+    float ramped_luminance = material->name == "颜" || material->name == "面1"
+                                 ? ramp_face(lighting_luminance)
+                                 : ramp(lighting_luminance);
+    float factor = lighting_luminance < EPS
+                       ? ramped_luminance
+                       : ramped_luminance / lighting_luminance;
+    diffuse_shading *= factor;
 
     return (ambient + diffuse_shading.cwiseProduct(diffuse)) * 0.5f;
 }
@@ -155,17 +159,19 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         float intensity = light.intensity / (light.pos - pos).squaredNorm();
 
         vec3 light_dir =
-            (light.pos - pos).normalized();            // shading point -> light
-        vec3 h = (light_dir + view_dir).normalized();  // half vector
+            (light.pos - pos).normalized();  // shading point -> light
 
         float cos_l = normal.dot(light_dir);
         if (cos_l <= EPS) continue;
         float cos_v = normal.dot(view_dir);
         if (cos_v <= EPS) continue;
 
+        vec3 h = (light_dir + view_dir).normalized();  // half vector
+        float cos_d = light_dir.dot(h);
+
         // Diffuse
 
-        float fd90 = 0.5f + 2.f * roughness * square(light_dir.dot(h));
+        float fd90 = 0.5f + 2.f * roughness * square(cos_d);
         vec3 diffuse = base_color / M_PI *
                        (1.f + (fd90 - 1.f) * std::pow(1.f - cos_l, 5)) *
                        (1.f + (fd90 - 1.f) * std::pow(1.f - cos_v, 5));
@@ -198,7 +204,7 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
 
     shading = shading * (0.5f + 0.5f * occlusion);
 
-    shading = base_color * 0.1f + shading;
+    // shading = base_color * 0.02f + shading;
 
     return shading;
 }

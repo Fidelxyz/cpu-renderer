@@ -54,15 +54,15 @@ static std::array<T, MSAA_LEVEL> texture_init_val(const T &val) {
 // * center: the left top corner of the pixel
 
 // * MSAA 4x
-// static const vec2 samples_coord_delta[MSAA_LEVEL] = {
-//     vec2(0.25, 0.25), vec2(0.75, 0.25), vec2(0.25, 0.75), vec2(0.75, 0.75)};
+static const vec2 samples_coord_delta[MSAA_LEVEL] = {
+    vec2(0.25, 0.25), vec2(0.75, 0.25), vec2(0.25, 0.75), vec2(0.75, 0.75)};
 
 // * MSAA 4x (rotated sampling points)
-static const vec2 samples_coord_delta[MSAA_LEVEL] = {
-    vec2(0.5915063509461, 0.1584936490539),
-    vec2(0.1584936490539, 0.4084936490539),
-    vec2(0.8415063509461, 0.5915063509461),
-    vec2(0.4084936490539, 0.8415063509461)};
+// static const vec2 samples_coord_delta[MSAA_LEVEL] = {
+//     vec2(0.5915063509461, 0.1584936490539),
+//     vec2(0.1584936490539, 0.4084936490539),
+//     vec2(0.8415063509461, 0.5915063509461),
+//     vec2(0.4084936490539, 0.8415063509461)};
 
 // * MSAA OFF
 // static const vec2 samples_coord_delta[MSAA_LEVEL] = {vec2(0.5, 0.5)};

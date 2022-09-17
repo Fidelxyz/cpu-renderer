@@ -148,10 +148,6 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
 
     cv::Mat ao_texture_blurred;
     cv::bilateralFilter(ao_texture, ao_texture_blurred, 5, 0.2, 15);
-    // std::swap(ao_texture, ao_texture_blurred);
-    // cv::bilateralFilter(ao_texture, ao_texture_blurred, 9, 0.1, 200);
-    // std::swap(ao_texture, ao_texture_blurred);
-    // cv::bilateralFilter(ao_texture, ao_texture_blurred, 5, 0.3, 50);
 
     auto result = Texture<vec3>(frame_buffer.width, frame_buffer.height);
 #pragma omp parallel for

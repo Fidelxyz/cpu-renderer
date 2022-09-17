@@ -102,8 +102,6 @@ bool Triangle::is_culled_view(const Camera &camera) const {
     const float L1[] = {-EPS, -EPS, -EPS};
     const float R1[] = {camera.width + EPS, camera.height + EPS, 1.f + EPS};
 
-    const float culling_min_w = camera.view_culling_min_w;
-
     // for each dimension
     for (size_t i = 0; i < 3; i++) {
         // culled if all vertices are outside the view (in the same side)
@@ -122,8 +120,8 @@ bool Triangle::is_culled_view(const Camera &camera) const {
             return true;
         }
 
-        if (vertices[0]->w < culling_min_w || vertices[1]->w < culling_min_w ||
-            vertices[2]->w < culling_min_w) {
+        if (vertices[0]->w < EPS || vertices[1]->w < EPS ||
+            vertices[2]->w < EPS) {
             return true;
         }
     }

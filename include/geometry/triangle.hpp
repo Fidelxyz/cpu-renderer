@@ -213,8 +213,8 @@ void Triangle::rasterize(Buffer *buffer, FragmentShaderT *fragment_shader,
                     if (material->alpha_texture->sample(uv) < EPS) continue;
                 }
 
+                // depth test
                 float z = interpolate_z_ss(barycoord_samples[i]);
-                // z-test
                 if (0.0 < z && z < buffer->z_buffer->at(pixel_x, pixel_y)[i]) {
                     // write into z-buffer
                     buffer->z_buffer->at(pixel_x, pixel_y)[i] = z;
