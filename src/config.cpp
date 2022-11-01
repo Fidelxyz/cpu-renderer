@@ -112,7 +112,8 @@ bool Config::load_scene(Scene *scene) const {
     for (auto yaml_light : yaml_config["lights"]) {
         scene->lights.emplace_back(
             to_vector(yaml_light["pos"]),
-            gamma_correction(to_vector(yaml_light["color"]), 2.2f),
+            to_vector(yaml_light["color"]),  // refers to Blender, no gamma
+                                             // correction required
             yaml_light["intensity"].as<float>());
     }
 
@@ -127,8 +128,9 @@ bool Config::load_scene(Scene *scene) const {
 
     // other
     if (yaml_config["background-color"])
-        scene->background_color =
-            gamma_correction(to_vector(yaml_config["background-color"]), 2.2f);
+        scene->background_color = to_vector(
+            yaml_config["background-color"]);  // refers to Blender, no gamma
+                                               // correction required
 
     if (yaml_config["rimlight"]) {
         scene->enable_rimlight = yaml_config["rimlight"]["enable"].as<bool>();

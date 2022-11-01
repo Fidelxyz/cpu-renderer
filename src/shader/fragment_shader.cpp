@@ -71,8 +71,8 @@ float ramp(const float x) {
     static_assert(0.f <= SHADOW && SHADOW <= GAMMA && GAMMA <= HIGHLIGHT &&
                   HIGHLIGHT <= 1.f);
 
-    float step1_val = smoothstep(x, STEP1 - SMOTHNESS1, STEP1 + SMOTHNESS1);
-    float step2_val = smoothstep(x, STEP2 - SMOTHNESS2, STEP2 + SMOTHNESS2);
+    float step1_val = smoothstep(STEP1 - SMOTHNESS1, STEP1 + SMOTHNESS1, x);
+    float step2_val = smoothstep(STEP2 - SMOTHNESS2, STEP2 + SMOTHNESS2, x);
 
     return SHADOW + step1_val * (GAMMA - SHADOW) +
            step2_val * (HIGHLIGHT - GAMMA);
@@ -87,7 +87,7 @@ float ramp_face(const float x) {
     static_assert(0.f <= STEP && STEP <= 1.f);
     static_assert(0.f <= SHADOW && SHADOW <= HIGHLIGHT && HIGHLIGHT <= 1.f);
 
-    float step_val = smoothstep(x, STEP - SMOTHNESS, STEP + SMOTHNESS);
+    float step_val = smoothstep(STEP - SMOTHNESS, STEP + SMOTHNESS, x);
 
     return SHADOW + step_val * (HIGHLIGHT - SHADOW);
 }
@@ -123,7 +123,7 @@ vec3 FragmentShader::cel(const vec3 &pos, const vec3 &normal, const vec2 &uv,
                        : ramped_luminance / lighting_luminance;
     diffuse_shading *= factor;
 
-    return (ambient + diffuse_shading.cwiseProduct(diffuse)) * 0.5f;
+    return ambient + diffuse_shading.cwiseProduct(diffuse);
 }
 
 ///////////
@@ -131,6 +131,8 @@ vec3 FragmentShader::cel(const vec3 &pos, const vec3 &normal, const vec2 &uv,
 ///////////
 
 float square(const float x) { return x * x; }
+
+float pow5(const float x) { return x * x * x * x * x; }
 
 vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
                          const vec2 &duv, Material *material) {
@@ -161,13 +163,11 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         vec3 light_dir =
             (light.pos - pos).normalized();  // shading point -> light
 
-        float cos_l = normal.dot(light_dir);
-        if (cos_l <= EPS) continue;
-        float cos_v = normal.dot(view_dir);
-        if (cos_v <= EPS) continue;
+        float cos_l = std::max(normal.dot(light_dir), 0.f);
+        float cos_v = std::max(normal.dot(view_dir), 0.f);
 
         vec3 h = (light_dir + view_dir).normalized();  // half vector
-        float cos_d = light_dir.dot(h);
+        float cos_d = std::max(light_dir.dot(h), 0.f);
 
         // Diffuse
 
@@ -186,25 +186,24 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
             (M_PI * square(square(normal.dot(h)) * (alpha_squared - 1) + 1));
 
         // G: Smith
-        float k = alpha_squared / 2;
+        float k = square((roughness + 1.0) / 2.0) / 2.0;
         float g1 = cos_v / (cos_v * (1 - k) + k);
         float g2 = cos_l / (cos_l * (1 - k) + k);
         float g = g1 * g2;
 
         // F: Fresnel
-        vec3 f0 = vec3(fd90, fd90, fd90);
+        vec3 f0 = vec3(0.04, 0.04, 0.04);
         f0 = (1 - metallic) * f0 + metallic * base_color;
-        vec3 f = f0 + (vec3(1, 1, 1) - f0) * std::pow(1 - cos_v, 5);
+        vec3 f = f0 + (vec3(1, 1, 1) - f0) * pow5(1 - cos_v);
 
-        vec3 specular = (d * g * f) / (4 * cos_v * cos_l);
+        vec3 specular = (d * g * f) / (4 * cos_v * cos_l + EPS);
+        // add EPS to avoid division by 0
 
         shading +=
-            intensity * light.color.cwiseProduct(diffuse + specular) * cos_l;
+            (intensity * light.color).cwiseProduct(diffuse + specular) * cos_l;
     }
 
     shading = shading * (0.5f + 0.5f * occlusion);
-
-    // shading = base_color * 0.02f + shading;
 
     return shading;
 }

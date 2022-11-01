@@ -91,24 +91,22 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
                        n.x(), n.y(), n.z();
                 // clang-format on
 
-                vec3 pos = buffer->pos_buffer->at(x, y)[i];
+                vec3 fragment_pos = buffer->pos_buffer->at(x, y)[i];
+                Vertex fragment_vertex = Vertex(fragment_pos);
+                vertex_shader->shade(&fragment_vertex);
+                float fragment_z = fragment_vertex.screen_pos.z();
 
                 // each sample
                 for (size_t sample_i = 0; sample_i < SAMPLES_DIR_NUM;
                      sample_i++) {
                     for (size_t sample_j = 0; sample_j < SAMPLES_DIST_NUM;
                          sample_j++) {
-                        // generate a sampling direction in a hemisphere
-
                         // transform to tangent space
                         vec3 sample_dir =
                             tbn.transpose() * samples_dir[sample_i];
 
-                        // generate the distance from the center to the sampling
-                        // point
-
                         vec3 sample_pos =
-                            pos + sample_dir * samples_dist[sample_j];
+                            fragment_pos + sample_dir * samples_dist[sample_j];
 
                         Vertex sample_vertex = Vertex(sample_pos);
                         vertex_shader->shade(&sample_vertex);
@@ -117,12 +115,13 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
                                  1.f - sample_vertex.screen_pos.y() / height);
 
                         float sample_z = sample_vertex.screen_pos.z();
-                        float orig_z = z_buffer.sample_no_repeat(sample_uv);
+                        float buffer_z = z_buffer.sample_no_repeat(sample_uv);
 
-                        if (sample_z > orig_z) {  // if occluted
-                            occlusion +=
-                                std::max(0.f, sample_dir.dot(n)) *
-                                (1.f - samples_dist[sample_j] / SAMPLE_RADIUS);
+                        if (sample_z > buffer_z + (2 * EPS)) {  // if occluted
+                            occlusion += smoothstep(
+                                0.0, 1.0,
+                                SAMPLE_RADIUS /
+                                    abs(fragment_z - buffer_z));  // range check
                         }
                     }
                 }
@@ -139,15 +138,14 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
 
             occlusion /= SAMPLES_NUM;
 
-            occlusion = std::min(occlusion * 6.f, 1.f);
-            occlusion = std::pow(occlusion, 1.5f);
+            occlusion = std::pow(occlusion, 1.3f);
 
             ao_texture.at<float>(y, x) = 1.f - occlusion;
         }
     }
 
     cv::Mat ao_texture_blurred;
-    cv::bilateralFilter(ao_texture, ao_texture_blurred, 5, 0.2, 15);
+    cv::bilateralFilter(ao_texture, ao_texture_blurred, 5, 0.1, 10);
 
     auto result = Texture<vec3>(frame_buffer.width, frame_buffer.height);
 #pragma omp parallel for

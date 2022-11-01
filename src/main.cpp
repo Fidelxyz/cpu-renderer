@@ -71,7 +71,7 @@ void render(Scene &scene) {
     }
 
     {
-        Timer timer("Trianglar rasterize");
+        Timer timer("Trianglar rasterization");
         for (auto &object : scene.objects) {
             ProgressBar progress("Rendering shapes", object.shapes.size());
             for (auto &shape : object.shapes) {
@@ -117,17 +117,19 @@ void render(Scene &scene) {
     Texture<vec3> frame_result;
     {
         Timer timer("MSAA filter");
-        frame_result = msaa::msaa_filter(*buffer.frame_buffer);
+        frame_result =
+            msaa::msaa_filter(*buffer.full_covered, *buffer.frame_buffer);
     }
 
     {
         Timer timer("SSAO filter");
-        Texture<float> z_buffer_result = msaa::msaa_filter(*buffer.z_buffer);
+        Texture<float> z_buffer_result =
+            msaa::msaa_filter(*buffer.full_covered, *buffer.z_buffer);
         frame_result = ssao::ssao_filter(&buffer, frame_result, z_buffer_result,
                                          &vertex_shader);
     }
 
-    {
+    if (scene.enable_bloom) {
         Timer timer("Bloom filter");
         frame_result =
             bloom::bloom_filter(frame_result, scene.bloom_strength,

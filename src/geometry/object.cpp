@@ -25,8 +25,8 @@ Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
 
     // Normal transform
 
-    normal_transform.rotation(rotation);
     normal_transform.scale(scale);
+    normal_transform.rotation(rotation);
 }
 
 void Object::do_model_transform() {
@@ -34,7 +34,7 @@ void Object::do_model_transform() {
     for (auto& vertex : vertices) {
         vec4 pos = model_transform.transform(
             vec4(vertex->pos.x(), vertex->pos.y(), vertex->pos.z(), 1));
-        vertex->pos = (vec3(pos.x(), pos.y(), pos.z()) / pos.w());
+        vertex->pos = vec3(pos.x(), pos.y(), pos.z()) / pos.w();
         vertex->normal =
             normal_transform.transform(vertex->normal).normalized();
     }

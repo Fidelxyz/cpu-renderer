@@ -11,31 +11,33 @@ namespace msaa {
 
 static const size_t MSAA_LEVEL = 4;
 
-__attribute_used__ static Texture<vec3> msaa_filter(
-    const Texture<std::array<vec3, MSAA_LEVEL>> &src) {
-    Texture<vec3> res(src.width, src.height, vec3(0, 0, 0));
+template <typename T>
+__attribute_used__ static Texture<T> msaa_filter(
+    const Texture<bool> &full_covered,
+    const Texture<std::array<T, MSAA_LEVEL>> &src) {
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, vec3>);
+
+    Texture<T> res(src.width, src.height);
 
 #pragma omp parallel for
     for (size_t i = 0; i < src.width * src.height; i++) {
-        for (size_t j = 0; j < MSAA_LEVEL; j++) {
-            res[i] += src[i][j];
+        // test if full covered
+        if (full_covered[i]) {
+            res[i] = src[i][0];
+        } else {
+            // init
+            if constexpr (std::is_same_v<T, float>) {  // float
+                res[i] = 0;
+            } else {  // vec3
+                res[i] = vec3(0, 0, 0);
+            }
+
+            // average
+            for (size_t j = 0; j < MSAA_LEVEL; j++) {
+                res[i] += src[i][j];
+            }
+            res[i] /= MSAA_LEVEL;
         }
-        res[i] /= MSAA_LEVEL;
-    }
-
-    return res;
-}
-
-__attribute_used__ static Texture<float> msaa_filter(
-    const Texture<std::array<float, MSAA_LEVEL>> &src) {
-    Texture<float> res(src.width, src.height, 0);
-
-#pragma omp parallel for
-    for (size_t i = 0; i < src.width * src.height; i++) {
-        for (size_t j = 0; j < MSAA_LEVEL; j++) {
-            res[i] += src[i][j];
-        }
-        res[i] /= MSAA_LEVEL;
     }
 
     return res;

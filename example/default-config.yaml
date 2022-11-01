@@ -23,29 +23,29 @@ objects:
 
   # - path: ../example/models/keqing/keqing.obj
   #   basepath: ../example/models/keqing/
-  #   pos: [0, -0.08, -0.1]
+  #   pos: [0, 0.2, 0]
   #   rotation: [0, 150, 0]
-  #   scale: [0.1, 0.1, 0.1]
+  #   scale: [1, 1, 1]
   #   shading-type: cel
 
-  - path: ../example/models/aether/aether.obj
-    basepath: ../example/models/aether/
-    pos: [0, 0, 0]
-    rotation: [0, 135, 0]
-    scale: [1, 1, 1]
-    shading-type: cel
+  # - path: ../example/models/aether/aether.obj
+  #   basepath: ../example/models/aether/
+  #   pos: [0, 0, 0]
+  #   rotation: [0, 135, 0]
+  #   scale: [1, 1, 1]
+  #   shading-type: cel
 
-  # - path: ../example/models/cube/cube.obj
-  #   basepath: ../example/models/cube/
-  #   pos: [-0.308932, 0.0211149, -0.34572]
-  #   rotation: [0, 0, 0]
-  #   scale: [0.01, 0.01, 0.01]
-  #   shading-type: default
-  #   material:
-  #     ambient: [1, 1, 1]
-  #     specular: [0, 0, 0]
-  #     diffuse: [0, 0, 0]
-  #     shininess: 20.0
+  - path: ../example/models/cube/cube.obj
+    basepath: ../example/models/cube/
+    pos: [0, 1, 0]
+    rotation: [45, 45, 45]
+    scale: [0.5, 0.5, 0.5]
+    shading-type: pbr
+    # material:
+    #   ambient: [1, 1, 1]
+    #   specular: [0, 0, 0]
+    #   diffuse: [0, 0, 0]
+    #   shininess: 20.0
 
 lights:
   - pos: [-1, 1, -1]
@@ -71,10 +71,10 @@ threads-num: 8
 background-color: [0, 0, 0]
 
 rimlight:
-  enable: true
+  enable: false
 
 bloom:
-  enable: true
+  enable: false
   strength: 0.1
   radius: 4.0
   iteration: 3

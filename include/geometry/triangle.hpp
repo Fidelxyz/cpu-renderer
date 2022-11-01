@@ -156,23 +156,10 @@ void Triangle::rasterize(Buffer *buffer, FragmentShaderT *fragment_shader,
         vec2 delta_uv1 = *texcoords[0] - *texcoords[1];
         vec2 delta_uv2 = *texcoords[0] - *texcoords[2];
 
-        float delta_u1 = delta_uv1.x();
-        float delta_v1 = delta_uv1.y();
-        float delta_u2 = delta_uv2.x();
-        float delta_v2 = delta_uv2.y();
+        float f =
+            (delta_uv1.x() * delta_uv2.y() - delta_uv2.x() * delta_uv1.y());
 
-        Eigen::Matrix<float, 1, 2> mat1;
-        mat1 << delta_v2, -delta_v1;
-
-        Eigen::Matrix<float, 2, 3> mat2;
-        // clang-format off
-        mat2 << e1.x(), e1.y(), e1.z(),
-                e2.x(), e2.y(), e2.z();
-        // clang-format on
-
-        tbn_u = (mat1 * mat2 / (delta_u1 * delta_v2 - delta_u2 * delta_v1))
-                    .transpose()
-                    .normalized();
+        tbn_u = ((delta_uv2.y() * e1 - delta_uv1.y() * e2) / f).normalized();
     }
 
     vec3 barycoord_y = barycoord_init;

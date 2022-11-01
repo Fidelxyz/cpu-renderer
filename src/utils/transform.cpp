@@ -39,9 +39,8 @@ void DirectionTransform::rotation(const vec3 &angle_deg) {
              sin_z, cos_z,  0,
              0,     0,      1;
     // clang-format on
-    mat3 rot_matrix = rot_z * rot_y * rot_x;
 
-    matrix = rot_matrix * matrix;
+    matrix = rot_z * rot_y * rot_x * matrix;
 }
 
 /////////////////////
@@ -57,7 +56,7 @@ void NormalTransform::scale(const vec3 &factor) {
     // clang-format on
 
     // Correction for normal transform
-    matrix = scale_matrix.inverse().transpose() * matrix;
+    matrix = scale_matrix.adjoint().transpose() * matrix;
 }
 
 ///////////////////////
@@ -108,9 +107,8 @@ void PositionTransform::rotation(const vec3 &angle_deg) {
              0,     0,      1, 0,
              0,     0,      0, 1;
     // clang-format on
-    mat4 rot_matrix = rot_z * rot_y * rot_x;
 
-    matrix = rot_matrix * matrix;
+    matrix = rot_z * rot_y * rot_x * matrix;
 }
 
 void PositionTransform::scale(const vec3 &factor) {

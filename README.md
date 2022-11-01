@@ -20,9 +20,9 @@ In YAML files, a vector in inputted as a parameter in the format of `[x, y, z]`.
 
 - `objects`: Accept an array of objects.
 
-  - `path`: String.
+  - `path`: String. **Only accept OBJ files.**
 
-  - `base-path`: String.
+  - `base-path`: String. The base path of assets (e.g. textures).
 
   - `pos`: 3D vector.
 
@@ -84,6 +84,14 @@ In YAML files, a vector in inputted as a parameter in the format of `[x, y, z]`.
 
   - `iteration`: Integer.
 
+### MTL files
+
+This program supports MTL files following this standard `http://exocortex.com/blog/extending_wavefront_mtl_to_support_pbr` supporting PBR.
+
+**Attention! For convenience, some interfaces do NOT follow from the normal standard:**
+
+- The bump map (`bump`) is used as the AO map.
+
 ## Development
 
 ### Class relationship
@@ -93,6 +101,7 @@ Scene +- Object -- Shape +- Triangle -- Vertex
                          +- Material -- (Mipmap) -- Texture
       +- Light
       +- Camera
+Buffer -- Texture
 ```
 
 ### Coordinate system
@@ -107,11 +116,11 @@ For camera:
 
 ### Rendering pipeline
 
-The rendering pipeline is defined in the function `render()` in the file `main.cpp`.
+The rendering pipeline is defined in the function `render()` in `src/main.cpp`.
 
 ### MSAA
 
-In the file `include/msaa.hpp`:
+In the file `src/include/msaa.hpp`:
 
 - `static const size_t msaa::MSAA_LEVEL` defines the number of sampling points.
 
@@ -119,13 +128,13 @@ In the file `include/msaa.hpp`:
 
 ### Mipmap
 
-In the file `include/texture/mipmap.hpp`:
+In the file `src/include/texture/mipmap.hpp`:
 
 - `const int mipmap::MIPMAP_LEVEL` defines the number of mipmap levels.
 
 ### Outline
 
-In the file `include/outline.hpp`:
+In the file `src/include/outline.hpp`:
 
 - `const float outline::OUTLINE_WIDTH` defines the outline width.
 
@@ -133,6 +142,6 @@ In the file `include/outline.hpp`:
 
 ### Rimlight
 
-In the file `include/rimlight.hpp`:
+In the file `src/include/rimlight.hpp`:
 
-- `const std::vector<std::tuple<size_t, size_t, float>> rimlightRIMLIGHT_DELTA` defines the sampling offsets.
+- `const std::vector<std::tuple<size_t, size_t, float>> rimlight::RIMLIGHT_DELTA` defines the sampling offsets.
