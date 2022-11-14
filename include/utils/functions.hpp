@@ -28,4 +28,8 @@ __attribute_used__ static float luminance(const vec3 &color) {
     return 0.2126f * color.x() + 0.7152f * color.y() + 0.0722f * color.z();
 }
 
+__attribute_used__ static float fract(const float &x) {
+    return x - std::floor(x);
+}
+
 #endif

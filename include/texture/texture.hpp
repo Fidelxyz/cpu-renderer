@@ -9,6 +9,7 @@
 
 #include "global.hpp"
 #include "utils/functions.hpp"
+#include "utils/gamma_correction.hpp"
 
 template <typename T>
 class Texture {
@@ -45,9 +46,6 @@ class Texture {
     void write_img(const std::string &filename, const bool linear) const;
 
     void read_alpha(const std::string &filename);
-
-    static float truncate_color(float color);
-    static vec3 truncate_color(const vec3 &color);
 
     T sample(const vec2 &uv) const;
     T sample_no_repeat(const vec2 &uv) const;
@@ -161,22 +159,26 @@ void Texture<T>::read_img(const std::string &filename, const bool linear) {
         return;
     }
 
+    //
+    if (!linear) {
+        GammaCorrection::to_linear(&img);
+    }
+
     // re-allowcate space
     allowcate(img.rows, img.cols);
 
-#pragma omp parallel for
-    for (size_t y = 0; y < height; y++) {
-        for (size_t x = 0; x < width; x++) {
-            if constexpr (std::is_same_v<T, float>) {  // float
-                at(x, y) = img.at<uchar>(y, x) / 255.f;
-            } else {  // vec3
-                at(x, y)[0] = img.at<cv::Vec3b>(y, x)[2] / 255.f;
-                at(x, y)[1] = img.at<cv::Vec3b>(y, x)[1] / 255.f;
-                at(x, y)[2] = img.at<cv::Vec3b>(y, x)[0] / 255.f;
+    cv::parallel_for_(
+        cv::Range(0, width * height), [&](const cv::Range &range) {
+            for (int r = range.start; r < range.end; r++) {
+                if constexpr (std::is_same_v<T, float>) {  // float
+                    at(r) = img.at<uchar>(r) / 255.f;
+                } else {  // vec3
+                    at(r)[0] = img.at<cv::Vec3b>(r)[2] / 255.f;
+                    at(r)[1] = img.at<cv::Vec3b>(r)[1] / 255.f;
+                    at(r)[2] = img.at<cv::Vec3b>(r)[0] / 255.f;
+                }
             }
-            if (!linear) at(x, y) = gamma_correction(at(x, y), 2.2f);
-        }
-    }
+        });
 }
 
 template <typename T>
@@ -192,20 +194,22 @@ void Texture<T>::write_img(const std::string &filename,
         img = cv::Mat(height, width, CV_8UC3);
     }
 
-#pragma omp parallel for
-    for (size_t y = 0; y < height; y++) {
-        for (size_t x = 0; x < width; x++) {
-            T t = truncate_color(at(x, y));
-            if (!linear) t = gamma_correction(t, 1.f / 2.2f);
-            if constexpr (std::is_same_v<T, float>) {  // float
-                img.at<uchar>(y, x) = t * 255.f;
-            } else {  // vec3
-                img.at<cv::Vec3b>(y, x)[2] = t[0] * 255.f;
-                img.at<cv::Vec3b>(y, x)[1] = t[1] * 255.f;
-                img.at<cv::Vec3b>(y, x)[0] = t[2] * 255.f;
+    cv::parallel_for_(
+        cv::Range(0, width * height), [&](const cv::Range &range) {
+            for (int r = range.start; r < range.end; r++) {
+                T t = at(r);
+                if (!linear) t = gamma_correction(t, 1.f / 2.2f);
+                t *= 255.f;
+                if constexpr (std::is_same_v<T, float>) {  // float
+                    img.at<uchar>(r) = cv::saturate_cast<uchar>(t);
+                } else {  // vec3
+                    img.at<cv::Vec3b>(r)[2] = cv::saturate_cast<uchar>(t[0]);
+                    img.at<cv::Vec3b>(r)[1] = cv::saturate_cast<uchar>(t[1]);
+                    img.at<cv::Vec3b>(r)[0] = cv::saturate_cast<uchar>(t[2]);
+                }
             }
-        }
-    }
+        });
+
     cv::imwrite(filename, img);
 }
 
@@ -227,12 +231,12 @@ void Texture<T>::read_alpha(const std::string &filename) {
 
     allowcate(img.rows, img.cols);
 
-#pragma omp parallel for
-    for (size_t y = 0; y < height; y++) {
-        for (size_t x = 0; x < width; x++) {
-            at(x, y) = img.at<cv::Vec4b>(y, x)[3] / 255.f;
-        }
-    }
+    cv::parallel_for_(cv::Range(0, width * height),
+                      [&](const cv::Range &range) {
+                          for (int r = range.start; r < range.end; r++) {
+                              at(r) = img.at<cv::Vec4b>(r)[3] / 255.f;
+                          }
+                      });
 }
 
 template <typename T>
@@ -251,7 +255,7 @@ T Texture<T>::sample_no_repeat(const vec2 &uv) const {
     int xr = xl + 1;
     int yl = std::floor(y);
     int yr = yl + 1;
-    
+
     float wx = x - xl;
     float wy = y - yl;
 
@@ -268,19 +272,6 @@ template <typename T>
 T Texture<T>::sample(const vec2 &uv) const {
     return sample_no_repeat(
         vec2(uv.x() - std::floor(uv.x()), uv.y() - std::floor(uv.y())));
-}
-
-template <typename T>
-float Texture<T>::truncate_color(float color) {
-    color = std::min(color, 1.f - EPS);
-    // color = std::max(color, 0.f);
-    return color;
-}
-
-template <typename T>
-vec3 Texture<T>::truncate_color(const vec3 &color) {
-    return vec3(truncate_color(color.x()), truncate_color(color.y()),
-                truncate_color(color.z()));
 }
 
 #endif

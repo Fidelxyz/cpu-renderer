@@ -2,6 +2,13 @@
 
 A simple CPU renderer, supporting congurable cameras, objects, lights and effects.
 
+## Dependencies
+
+- OpenMP
+- OpenCV
+- Eigen
+- Intel MKL
+
 ## Running
 
 ```
