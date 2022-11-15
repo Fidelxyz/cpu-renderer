@@ -36,6 +36,7 @@ Mipmap<T>::Mipmap(const std::shared_ptr<Texture<T>> &src) {
                 std::make_shared<Texture<T>>(texture[lod_y - 1][0]->width,
                                              texture[lod_y - 1][0]->height / 2);
 
+#pragma omp parallel for
             for (size_t y = 0; y < texture[lod_y][0]->height; y++) {
                 for (size_t x = 0; x < texture[lod_y][0]->width; x++) {
                     texture[lod_y][0]->at(x, y) =
@@ -49,6 +50,8 @@ Mipmap<T>::Mipmap(const std::shared_ptr<Texture<T>> &src) {
             texture[lod_y][lod_x] = std::make_shared<Texture<T>>(
                 texture[lod_y][lod_x - 1]->width / 2,
                 texture[lod_y][lod_x - 1]->height);
+
+#pragma omp parallel for
             for (size_t y = 0; y < texture[lod_y][lod_x]->height; y++) {
                 for (size_t x = 0; x < texture[lod_y][lod_x]->width; x++) {
                     texture[lod_y][lod_x]->at(x, y) =

@@ -35,12 +35,9 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
     auto ao_texture =
         cv::Mat(frame_buffer.height, frame_buffer.width, CV_32FC1);
 
-    float width = frame_buffer.width;
-    float height = frame_buffer.height;
-
     vec3 samples[SAMPLES_NUM];
     for (size_t i = 0; i < SAMPLES_NUM; i++) {
-        float dist = i / SAMPLES_NUM * SAMPLE_RADIUS;
+        float dist = static_cast<float>(i) / SAMPLES_NUM * SAMPLE_RADIUS;
         dist = .1f + .9f * dist * dist;
         samples[i] = vec3(random(i, 0) * 2.f - 1.f,  // x: [-1, 1]
                           random(i, 1) * 2.f - 1.f,  // y: [-1, 1]
@@ -92,8 +89,9 @@ Texture<vec3> ssao_filter(Buffer *buffer, const Texture<vec3> &frame_buffer,
                     Vertex sample_vertex = Vertex(sample_pos);
                     vertex_shader->shade(&sample_vertex);
                     vec2 sample_uv =
-                        vec2(sample_vertex.screen_pos.x() / width,
-                             1.f - sample_vertex.screen_pos.y() / height);
+                        vec2(sample_vertex.screen_pos.x() / frame_buffer.width,
+                             1.f - sample_vertex.screen_pos.y() /
+                                       frame_buffer.height);
 
                     float sample_z = sample_vertex.screen_pos.z();
                     float buffer_z = z_buffer.sample_no_repeat(sample_uv);

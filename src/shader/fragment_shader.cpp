@@ -157,6 +157,21 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
 
     vec3 view_dir = (eye_pos - pos).normalized();  // shading point -> eye
 
+    float cos_v = std::max(normal.dot(view_dir), 0.f);
+
+    // D: GGX/Trowbridge-Reitz
+    float alpha = square(roughness);
+    float alpha_squared = square(alpha);
+
+    // G: Smith
+    float k = square((roughness + 1.0) / 2.0) / 2.0;
+    float g1 = cos_v / (cos_v * (1 - k) + k);
+
+    // F: Fresnel
+    vec3 f0 = vec3(0.04, 0.04, 0.04);
+    f0 = (1 - metallic) * f0 + metallic * base_color;
+    vec3 f = f0 + (vec3(1, 1, 1) - f0) * pow5(1 - cos_v);
+
     for (auto &light : *lights) {
         float intensity = light.intensity / (light.pos - pos).squaredNorm();
 
@@ -164,10 +179,9 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
             (light.pos - pos).normalized();  // shading point -> light
 
         float cos_l = std::max(normal.dot(light_dir), 0.f);
-        float cos_v = std::max(normal.dot(view_dir), 0.f);
 
         vec3 h = (light_dir + view_dir).normalized();  // half vector
-        float cos_d = std::max(light_dir.dot(h), 0.f);
+        float cos_d = std::max(h.dot(light_dir), 0.f);
 
         // Diffuse
 
@@ -179,22 +193,13 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
         // Specular: Cook-Torrance
 
         // D: GGX/Trowbridge-Reitz
-        float alpha = square(roughness);
-        float alpha_squared = square(alpha);
         float d =
             alpha_squared /
             (M_PI * square(square(normal.dot(h)) * (alpha_squared - 1) + 1));
 
         // G: Smith
-        float k = square((roughness + 1.0) / 2.0) / 2.0;
-        float g1 = cos_v / (cos_v * (1 - k) + k);
         float g2 = cos_l / (cos_l * (1 - k) + k);
         float g = g1 * g2;
-
-        // F: Fresnel
-        vec3 f0 = vec3(0.04, 0.04, 0.04);
-        f0 = (1 - metallic) * f0 + metallic * base_color;
-        vec3 f = f0 + (vec3(1, 1, 1) - f0) * pow5(1 - cos_v);
 
         vec3 specular = (d * g * f) / (4 * cos_v * cos_l + EPS);
         // add EPS to avoid division by 0
@@ -203,7 +208,7 @@ vec3 FragmentShader::pbr(const vec3 &pos, const vec3 &normal, const vec2 &uv,
             (intensity * light.color).cwiseProduct(diffuse + specular) * cos_l;
     }
 
-    shading = shading * (0.5f + 0.5f * occlusion);
+    shading *= 0.5f + 0.5f * occlusion;
 
     return shading;
 }

@@ -14,8 +14,6 @@
 #include "tiny_obj_loader.h"
 #undef TINYOBJLOADER_IMPLEMENTATION
 
-Object::Object() {}
-
 Object::Object(const vec3& pos, const vec3& rotation, const vec3& scale) {
     // Model transform
 
